@@ -65,14 +65,14 @@ class ClassAttendancePage extends StatelessWidget {
   };
 
   ClassAttendancePage({
-    Key? key,
+    super.key,
     required this.name,
     required this.rollNo,
     required this.year,
     required Map fineData,
     required List subjectsData,
     required String username,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -153,7 +153,7 @@ class ClassAttendancePage extends StatelessWidget {
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
@@ -186,12 +186,11 @@ class ClassAttendancePage extends StatelessWidget {
                           : Colors.orange,
                 ),
                 title: Text(
-                  '${entry.key}: ' +
-                      (entry.value == 'P'
+                  '${entry.key}: ${entry.value == 'P'
                           ? 'Present'
                           : entry.value == 'A'
                               ? 'Absent'
-                              : 'Leave'),
+                              : 'Leave'}',
                 ),
               );
             }).toList(),
@@ -212,9 +211,9 @@ class ClassAttendancePage extends StatelessWidget {
   double calculateFine() {
     int totalAbsent = 0;
 
-    attendance.values.forEach((records) {
+    for (var records in attendance.values) {
       totalAbsent += records.values.where((record) => record == 'A').length;
-    });
+    }
 
     return totalAbsent * 2.0;
   }
@@ -226,8 +225,8 @@ void main() {
       name: 'John Doe',
       rollNo: '123456',
       year: '2024',
-      fineData: {},
-      subjectsData: [],
+      fineData: const {},
+      subjectsData: const [],
       username: '',
     ),
   ));

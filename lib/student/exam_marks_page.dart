@@ -1,96 +1,161 @@
 import 'package:flutter/material.dart';
+import 'package:diet_portal/color_theme.dart';
 
-class ExamMarksPage extends StatelessWidget {
-  final Map<String, Map<String, String>> term1Marks = {
-    'Mathematics': {'Term 1': '7/15', 'Term 2': '12/15'},
-    'Physics': {'Term 1': '10/15', 'Term 2': '18/25'},
-    'Chemistry': {'Term 1': '11/15', 'Term 2': '20/25'},
-    'Biology': {'Term 1': '9/15', 'Term 2': '15/25'},
-    'English': {'Term 1': '13/15', 'Term 2': '22/25'},
-  };
+class ExamMarksPage extends StatefulWidget {
+  final String username;
 
-  final Map<String, Map<String, String>> term2Marks = {
-    'Mathematics': {'Term 1': '14/15', 'Term 2': '13/15'},
-    'Physics': {'Term 1': '20/25', 'Term 2': '22/25'},
-    'Chemistry': {'Term 1': '18/25', 'Term 2': '23/25'},
-    'Biology': {'Term 1': '12/15', 'Term 2': '20/25'},
-    'English': {'Term 1': '22/25', 'Term 2': '24/25'},
-  };
+  const ExamMarksPage({Key? key, required this.username, required List<String> notices}) : super(key: key);
+
+  @override
+  _ExamMarksPageState createState() => _ExamMarksPageState();
+}
+
+class _ExamMarksPageState extends State<ExamMarksPage> {
+  final List<String> _terms = ['Term 1', 'Term 2'];
+  String _selectedTerm = 'Term 1';
+  Map<String, dynamic> _marksData = {};
+
+  Color _termTextColor = Colors.black;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMarks();
+  }
+
+  Future<void> _fetchMarks() async {
+    await Future.delayed(const Duration(seconds: 1));
+
+    setState(() {
+      _marksData = {
+        'Math': 85,
+        'Science': 78,
+        'English': 90,
+      };
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Exam Marks'),
-          bottom: const TabBar(
-            labelColor: Colors.white, // Color for selected tab
-            unselectedLabelColor: Colors.black54, // Color for unselected tabs
-            labelStyle: TextStyle(fontWeight: FontWeight.bold), // Bold text for selected tab
-            unselectedLabelStyle: TextStyle(fontWeight: FontWeight.bold), // Bold text for unselected tabs
-            tabs: [
-              Tab(text: 'Term 1'),
-              Tab(text: 'Term 2'),
-            ],
-          ),
-          flexibleSpace: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xff3498db),
-                  Color(0xff4a77f2),
-                ],
-              ),
-            ),
-          ),
-        ),
-        body: Container(
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Exam Marks'),
+        flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color(0xff3498db),
-                Color(0xff4a77f2),
+                ColorTheme.appBarGradientStart,
+                ColorTheme.appBarGradientEnd,
               ],
             ),
           ),
-          child: TabBarView(
+        ),
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              ColorTheme.appBarGradientStart,
+              ColorTheme.appBarGradientEnd,
+            ],
+          ),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(screenWidth * 0.05),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              buildMarksList(term1Marks),
-              buildMarksList(term2Marks),
+              GestureDetector(
+                onTap: () {
+                  showMenu<String>(
+                    context: context,
+                    position: RelativeRect.fromLTRB(
+                      screenWidth * 0.2, // left
+                      screenHeight * 0.1, // top (adjust as needed)
+                      screenWidth * 0.2, // right
+                      0, // bottom
+                    ),
+                    items: _terms.map((String term) {
+                      return PopupMenuItem<String>(
+                        value: term,
+                        child: Text(
+                          term,
+                          style: TextStyle(
+                            color: _termTextColor,
+                            fontSize: 16,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    color: ColorTheme.secondaryColor,
+                  ).then((value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedTerm = value;
+                        _fetchMarks();
+                      });
+                    }
+                  });
+                },
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(8),
+                    color: ColorTheme.inputFieldBackground,
+                  ),
+                  alignment: Alignment.center,
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _selectedTerm,
+                        style: TextStyle(
+                          color: _termTextColor,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Icon(Icons.arrow_drop_down),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: screenHeight * 0.02),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _marksData.keys.length,
+                  itemBuilder: (context, index) {
+                    final subject = _marksData.keys.elementAt(index);
+                    final marks = _marksData[subject];
+                    return Card(
+                      color: ColorTheme.cardBackground,
+                      margin: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: ListTile(
+                        title: Text(subject),
+                        trailing: Text(
+                          marks.toString(),
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 18.0,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget buildMarksList(Map<String, Map<String, String>> marks) {
-    return ListView(
-      padding: const EdgeInsets.all(16.0),
-      children: marks.entries.map((entry) {
-        return Card(
-          color: Colors.white.withOpacity(0.6), // Semi-transparent white color
-          margin: const EdgeInsets.symmetric(vertical: 8.0),
-          child: ListTile(
-            title: Text(
-              entry.key,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Term 1: ${entry.value['Term 1']}'),
-                Text('Term 2: ${entry.value['Term 2']}'),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
     );
   }
 }

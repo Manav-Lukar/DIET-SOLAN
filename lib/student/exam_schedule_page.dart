@@ -17,6 +17,8 @@ class ExamSchedulePage extends StatelessWidget {
     'English': '18th December 2024, 9:00 AM - 12:00 PM',
   };
 
+   ExamSchedulePage({super.key, required String username});
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(

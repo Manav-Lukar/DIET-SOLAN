@@ -4,7 +4,7 @@ class AnnouncementWidget extends StatelessWidget {
   final String? message;
   final Function()? onClose;
 
-  const AnnouncementWidget({Key? key, this.message, this.onClose}) : super(key: key);
+  const AnnouncementWidget({super.key, this.message, this.onClose});
 
   @override
   Widget build(BuildContext context) {
@@ -18,11 +18,11 @@ class AnnouncementWidget extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.yellow.withOpacity(0.9),
                 borderRadius: BorderRadius.circular(8.0),
-                boxShadow: [
+                boxShadow: const [
                   BoxShadow(
                     color: Colors.black26,
                     blurRadius: 6.0,
-                    offset: const Offset(0, 2),
+                    offset: Offset(0, 2),
                   ),
                 ],
               ),
@@ -47,6 +47,6 @@ class AnnouncementWidget extends StatelessWidget {
               ),
             ),
           )
-        : SizedBox.shrink();
+        : const SizedBox.shrink();
   }
 }

@@ -16,6 +16,8 @@ class AcademicDetailsPage extends StatelessWidget {
     'Geography': 'Ms. R. Joshi',
   };
 
+   AcademicDetailsPage({super.key, required String username});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,7 +77,7 @@ class AcademicDetailsPage extends StatelessWidget {
                   ),
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),

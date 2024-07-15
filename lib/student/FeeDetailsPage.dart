@@ -3,6 +3,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 class FeeDetailsPage extends StatefulWidget {
+  const FeeDetailsPage({super.key, required String username});
+
   @override
   _FeeDetailsPageState createState() => _FeeDetailsPageState();
 }
