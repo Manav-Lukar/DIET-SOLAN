@@ -71,7 +71,7 @@ class ClassAttendancePage extends StatelessWidget {
     required this.year,
     required Map fineData,
     required List subjectsData,
-    required String username,
+    required String username, required Map attendance,
   });
 
   @override
@@ -227,9 +227,7 @@ void main() {
       year: '2024',
       fineData: const {},
       subjectsData: const [],
-      username: '',
+      username: '', attendance: {},
     ),
   ));
 }
-
-                           

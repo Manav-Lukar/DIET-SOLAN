@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class NoticesPage extends StatefulWidget {
-  const NoticesPage({Key? key, required this.onMessagePublished})
+  const NoticesPage({Key? key, required this.onMessagePublished, required List notices})
       : super(key: key);
 
   final Function(String) onMessagePublished;
@@ -65,8 +65,8 @@ class _NoticesPageState extends State<NoticesPage> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.blue.shade300,
-              Colors.blue.shade500,
+              Color.fromARGB(255, 100, 181, 246),
+              Color.fromARGB(255, 100, 181, 246),
             ],
           ),
         ),

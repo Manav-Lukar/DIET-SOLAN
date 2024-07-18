@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class PersonalInfoDialog extends StatelessWidget {
   final Map<String, String> studentInfo;
 
-  const PersonalInfoDialog({super.key, required this.studentInfo, required Map<String, String> facultyInfo});
+  const PersonalInfoDialog({super.key, required this.studentInfo, required Map<String, String> facultyInfo, required String username});
 
   @override
   Widget build(BuildContext context) {

@@ -8,16 +8,12 @@ import 'package:diet_portal/student/student_personal_info.dart';
 
 class StudentHomePage extends StatelessWidget {
   final String username;
-  final String name = 'John Doe'; // Example student info
-  final String rollNo = '123456';
-  final String year = '2nd Year';
   final List<String> notices; // List of notices
 
   const StudentHomePage({
     Key? key,
     required this.username,
-    required this.notices,
-    required List subjectsData,
+    required this.notices, required List subjectsData,
   }) : super(key: key);
 
   @override
@@ -43,7 +39,7 @@ class StudentHomePage extends StatelessWidget {
                   const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
               color: Colors.white.withOpacity(0.2),
               child: Text(
-                'Welcome , $username',
+                'Welcome, $username',
                 style:
                     const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
@@ -82,66 +78,76 @@ class StudentHomePage extends StatelessWidget {
   Widget buildTile(BuildContext context, String title) {
     return GestureDetector(
       onTap: () {
-        if (title == 'Personal Info') {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return PersonalInfoDialog(
-                studentInfo: {
-                  'Username': username,
-                  'Name': name,
-                  'Roll No': rollNo,
-                  'Year': year,
-                },
-                facultyInfo: {},
-              );
-            },
-          );
-        } else if (title == 'Fee Details') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FeeDetailsPage(username: username),
-            ),
-          );
-        } else if (title == 'Academic Details') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AcademicDetailsPage(username: username),
-            ),
-          );
-        } else if (title == 'Exam Schedule') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ExamSchedulePage(username: username),
-            ),
-          );
-        } else if (title == 'Class Attendance') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ClassAttendancePage(
-                username: username,
-                name: '',
-                rollNo: '',
-                fineData: {},
-                subjectsData: [],
-                year: '',
+        switch (title) {
+          case 'Personal Info':
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return PersonalInfoDialog(
+                  studentInfo: {
+                    'Username': username,
+                    'Name': 'John Doe', // Example student info
+                    'Roll No': '123456',
+                    'Year': '2nd Year',
+                  },
+                  facultyInfo: {}, username: '', // Pass faculty info if needed
+                );
+              },
+            );
+            break;
+          case 'Fee Details':
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FeeDetailsPage(username: username),
               ),
-            ),
-          );
-        } else if (title == 'Exam Marks') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ExamMarksPage(
-                username: username,
-                notices: notices,
+            );
+            break;
+          case 'Academic Details':
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AcademicDetailsPage(username: username),
               ),
-            ),
-          );
+            );
+            break;
+          case 'Exam Schedule':
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ExamSchedulePage(username: username),
+              ),
+            );
+            break;
+          case 'Class Attendance':
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ClassAttendancePage(
+                  username: username,
+                  name: 'John Doe', // Example student name
+                  rollNo: '123456', // Example student roll number
+                  fineData: {}, // Provide fine data if needed
+                  subjectsData: [], // Provide subjects data
+                  year: '2nd Year', attendance: {}, // Example student year
+                ),
+              ),
+            );
+            break;
+          case 'Exam Marks':
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ExamMarksPage(
+                  username: username,
+                  notices: notices,
+                ),
+              ),
+            );
+            break;
+          default:
+            // Handle default case or add additional tiles
+            break;
         }
       },
       child: Container(
@@ -156,9 +162,10 @@ class StudentHomePage extends StatelessWidget {
               title,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black),
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
             ),
           ),
         ),
@@ -166,3 +173,4 @@ class StudentHomePage extends StatelessWidget {
     );
   }
 }
+

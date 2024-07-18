@@ -1,14 +1,15 @@
-import 'package:diet_portal/faculty/ClassSchedulePage.dart';
 import 'package:diet_portal/faculty/exam_papers_page.dart';
 import 'package:diet_portal/faculty/faculty_attendance_page.dart';
+import 'package:diet_portal/faculty/notices_page.dart';
 import 'package:diet_portal/student/student_personal_info.dart';
 import 'package:flutter/material.dart';
-import 'notices_page.dart'; // Import your NoticesPage
+import 'package:diet_portal/faculty/ClassSchedulePage.dart';
+ // Import your PersonalInfoDialog
 
 class FacultyHomePage extends StatefulWidget {
   final String username;
 
-  const FacultyHomePage({Key? key, required this.username}) : super(key: key);
+  const FacultyHomePage({Key? key, required this.username, required String email, required notices}) : super(key: key);
 
   @override
   _FacultyHomePageState createState() => _FacultyHomePageState();
@@ -36,13 +37,11 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
           children: [
             SizedBox(height: 40.0), // Adjusted spacing for welcome message
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
               color: Colors.white.withOpacity(0.2),
               child: Text(
                 'Welcome, ${widget.username}',
-                style:
-                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -87,7 +86,8 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
                 facultyInfo: {
                   'Username': widget.username,
                 },
-                studentInfo: {},
+                studentInfo: {}, // Adjust as per your app logic
+                username: '', // Adjust as per your app logic
               );
             },
           );
@@ -95,8 +95,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  ClassSchedulePage(facultyName: widget.username),
+              builder: (context) => ClassSchedulePage(facultyName: widget.username),
             ),
           );
         } else if (title == 'Attendance Records') {
@@ -108,7 +107,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
                 subjects: [
                   'Mathematics',
                   'Physics',
-                  'Chemistry'
+                  'Chemistry',
                 ], // Example subjects
               ),
             ),
@@ -133,6 +132,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
                     notices.add(message);
                   });
                 },
+                notices: notices,
               ),
             ),
           );
@@ -152,9 +152,10 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
               title,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black),
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
             ),
           ),
         ),

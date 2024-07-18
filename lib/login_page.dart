@@ -1,7 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:diet_portal/student/student_home_page.dart';
 import 'package:diet_portal/faculty/faculty_home_page.dart';
-import 'package:diet_portal/faculty/notices_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -10,59 +11,93 @@ class LoginPage extends StatefulWidget {
   _LoginPageState createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _logoAnimation;
-  late Animation<double> _formAnimation;
-  bool isStudentSelected = true; // Default selection
-  String username = '';
-  String password = '';
-  List<String> notices = []; // List to hold published notices
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  String _errorMessage = '';
 
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
+  Future<void> _loginUser(BuildContext context) async {
+    String usernameInput = _usernameController.text.trim();
+    late String apiUrl;
+    late String successRole;
+    late Map<String, dynamic> requestBody;
 
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    );
-
-    _logoAnimation =
-        Tween<double>(begin: 0, end: 1).animate(_animationController);
-    _formAnimation =
-        Tween<double>(begin: 0, end: 1).animate(_animationController);
-
-    _animationController.forward();
-  }
-
-  void _loginUser() {
-    // For simplicity, assuming no authentication here, just navigating based on role selection
-    if (isStudentSelected) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => StudentHomePage(
-              username: _usernameController.text, subjectsData: [], notices: [],),
-        ),
-      );
+    // Determine API URL based on input (email or roll number)
+    if (usernameInput.contains('@')) {
+      // If input contains '@', treat it as an email (faculty)
+      apiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/faculty/faculty-login';
+      successRole = 'Faculty';
+      requestBody = <String, dynamic>{
+        'email': usernameInput,
+      };
     } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              FacultyHomePage(username: _usernameController.text),
-        ),
-      );
+      // Otherwise, treat it as a roll number (student)
+      apiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/student/student-login';
+      successRole = 'Student';
+      requestBody = <String, dynamic>{
+        'enrollNo': int.tryParse(usernameInput) ?? 0,
+      };
     }
-  }
 
-  void _receiveNotice(String message) {
-    setState(() {
-      notices.add(message);
+    requestBody.addAll({
+      'password': _passwordController.text.trim(),
+      'role': successRole,
     });
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data.containsKey('${successRole.toLowerCase()}Details') && data['${successRole.toLowerCase()}Details']['role'] == successRole) {
+          if (successRole == 'Student') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => StudentHomePage(
+                  username: _usernameController.text,
+                  notices: const [], // Adjust as per your app logic
+                  subjectsData: const [], // Adjust as per your app logic
+                ),
+              ),
+            );
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FacultyHomePage(
+                  username: _usernameController.text,
+                  email: '', // Adjust as per your app logic
+                  notices: null, // Adjust as per your app logic
+                ),
+              ),
+            );
+          }
+        } else {
+          setState(() {
+            _errorMessage = 'Invalid role or data format';
+          });
+        }
+      } else {
+        setState(() {
+          _errorMessage = 'Invalid email or password';
+        });
+      }
+    } catch (e) {
+      print('Error: $e');
+      setState(() {
+        _errorMessage = 'Error: $e';
+      });
+    }
   }
 
   @override
@@ -90,14 +125,11 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ScaleTransition(
-                  scale: _logoAnimation,
-                  child: Hero(
-                    tag: 'logo',
-                    child: Image.asset(
-                      'assets/diet_logo.jpg',
-                      height: screenHeight * 0.25,
-                    ),
+                Hero(
+                  tag: 'logo',
+                  child: Image.asset(
+                    'assets/diet_logo.jpg',
+                    height: screenHeight * 0.25,
                   ),
                 ),
                 SizedBox(height: screenHeight * 0.04),
@@ -110,154 +142,88 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                   ),
                 ),
                 SizedBox(height: screenHeight * 0.04),
-                FadeTransition(
-                  opacity: _formAnimation,
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          vertical: screenHeight * 0.015,
-                          horizontal: screenWidth * 0.05,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius:
-                              BorderRadius.circular(screenWidth * 0.05),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 2,
-                              blurRadius: 5,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: TextFormField(
-                          controller: _usernameController,
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            labelText: 'Username',
-                            prefixIcon: Icon(Icons.person),
-                          ),
-                          onChanged: (value) {
-                            setState(() {
-                              username = value;
-                            });
-                          },
-                        ),
+                Column(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        vertical: screenHeight * 0.015,
+                        horizontal: screenWidth * 0.05,
                       ),
-                      SizedBox(height: screenHeight * 0.02),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          vertical: screenHeight * 0.015,
-                          horizontal: screenWidth * 0.05,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius:
-                              BorderRadius.circular(screenWidth * 0.05),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 2,
-                              blurRadius: 5,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: TextFormField(
-                          controller: _passwordController,
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            labelText: 'Password',
-                            prefixIcon: Icon(Icons.lock),
-                          ),
-                          obscureText: true,
-                        ),
-                      ),
-                      SizedBox(height: screenHeight * 0.02),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ChoiceChip(
-                            label: const Text('Student'),
-                            selected: isStudentSelected,
-                            onSelected: (selected) {
-                              setState(() {
-                                isStudentSelected = true;
-                              });
-                            },
-                          ),
-                          SizedBox(width: screenWidth * 0.03),
-                          ChoiceChip(
-                            label: const Text('Faculty'),
-                            selected: !isStudentSelected,
-                            onSelected: (selected) {
-                              setState(() {
-                                isStudentSelected = false;
-                              });
-                            },
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(screenWidth * 0.05),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 2,
+                            blurRadius: 5,
+                            offset: const Offset(0, 3),
                           ),
                         ],
                       ),
-                      SizedBox(height: screenHeight * 0.03),
-                      ElevatedButton(
-                        onPressed: _loginUser,
-                        child: const Text('Login'),
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                            vertical: screenHeight * 0.02,
-                            horizontal: screenWidth * 0.3,
+                      child: TextFormField(
+                        controller: _usernameController,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          labelText: 'Email or Roll Number',
+                          prefixIcon: Icon(Icons.person),
+                        ),
+                        keyboardType: TextInputType.text,
+                      ),
+                    ),
+                    SizedBox(height: screenHeight * 0.02),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        vertical: screenHeight * 0.015,
+                        horizontal: screenWidth * 0.05,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(screenWidth * 0.05),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 2,
+                            blurRadius: 5,
+                            offset: const Offset(0, 3),
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(screenWidth * 0.05),
-                          ),
-                          textStyle: TextStyle(
-                            fontSize: screenWidth * 0.05,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        ],
+                      ),
+                      child: TextFormField(
+                        controller: _passwordController,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          labelText: 'Password',
+                          prefixIcon: Icon(Icons.lock),
+                        ),
+                        obscureText: true,
+                      ),
+                    ),
+                    SizedBox(height: screenHeight * 0.02),
+                    ElevatedButton(
+                      onPressed: () => _loginUser(context),
+                      child: const Text('Login'),
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(
+                          vertical: screenHeight * 0.02,
+                          horizontal: screenWidth * 0.3,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(screenWidth * 0.05),
+                        ),
+                        textStyle: TextStyle(
+                          fontSize: screenWidth * 0.05,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: screenHeight * 0.04),
-                      if (notices.isNotEmpty)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Notices:',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: screenWidth * 0.05,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            Container(
-                              padding: EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
-                                    spreadRadius: 2,
-                                    blurRadius: 5,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: notices
-                                    .map((notice) => Text(notice))
-                                    .toList(),
-                              ),
-                            ),
-                          ],
-                        ),
-                    ],
-                  ),
+                    ),
+                    SizedBox(height: screenHeight * 0.04),
+                    if (_errorMessage.isNotEmpty)
+                      Text(
+                        _errorMessage,
+                        style: const TextStyle(color: Colors.red, fontSize: 16),
+                      ),
+                  ],
                 ),
               ],
             ),
@@ -269,7 +235,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 }
