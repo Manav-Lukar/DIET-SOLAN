@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 class PersonalInfoDialog extends StatelessWidget {
   final Map<String, String> studentInfo;
 
-  const PersonalInfoDialog({super.key, required this.studentInfo, required Map<String, String> facultyInfo, required String username});
+  const PersonalInfoDialog({
+    Key? key,
+    required this.studentInfo, required String username, required Map<String, String> facultyInfo,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +15,8 @@ class PersonalInfoDialog extends StatelessWidget {
       content: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: ListBody(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: studentInfo.entries.map((entry) {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4.0),

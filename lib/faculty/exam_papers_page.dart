@@ -5,8 +5,7 @@ class ExamPapersPage extends StatefulWidget {
   final String username;
 
   const ExamPapersPage(
-      {Key? key, required this.username, required String facultyName})
-      : super(key: key);
+      {super.key, required this.username, required String facultyName});
 
   @override
   _ExamPapersPageState createState() => _ExamPapersPageState();
@@ -21,7 +20,7 @@ class _ExamPapersPageState extends State<ExamPapersPage> {
 
   Future<void> _uploadMarks() async {
     // Simulated API call
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 2));
 
     // Simulated success
     ScaffoldMessenger.of(context).showSnackBar(
@@ -38,7 +37,7 @@ class _ExamPapersPageState extends State<ExamPapersPage> {
       appBar: AppBar(
         title: const Text('Exam Papers'),
         flexibleSpace: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -51,7 +50,7 @@ class _ExamPapersPageState extends State<ExamPapersPage> {
         ),
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -87,7 +86,7 @@ class _ExamPapersPageState extends State<ExamPapersPage> {
                 },
                 decoration: InputDecoration(
                   labelText: 'Select Term',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                   filled: true,
                   fillColor: ColorTheme.inputFieldBackground,
                 ),
@@ -114,7 +113,7 @@ class _ExamPapersPageState extends State<ExamPapersPage> {
                 },
                 decoration: InputDecoration(
                   labelText: 'Select Subject',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                   filled: true,
                   fillColor: ColorTheme.inputFieldBackground,
                 ),
@@ -128,7 +127,7 @@ class _ExamPapersPageState extends State<ExamPapersPage> {
                 ),
                 decoration: InputDecoration(
                   labelText: 'Enter Marks',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                   filled: true,
                   fillColor: ColorTheme.inputFieldBackground,
                 ),
@@ -136,13 +135,12 @@ class _ExamPapersPageState extends State<ExamPapersPage> {
               SizedBox(height: screenHeight * 0.04),
               ElevatedButton(
                 onPressed: _uploadMarks,
-                child: const Text('Upload Marks'),
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(
                     vertical: screenHeight * 0.025,
                     horizontal: screenWidth * 0.3,
                   ),
-                  backgroundColor: Color(0xFFF3F2F2),
+                  backgroundColor: const Color(0xFFF3F2F2),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(screenWidth * 0.05),
                   ),
@@ -151,6 +149,7 @@ class _ExamPapersPageState extends State<ExamPapersPage> {
                     fontWeight: FontWeight.bold,
                   ), // Background color
                 ),
+                child: const Text('Upload Marks'),
               ),
             ],
           ),

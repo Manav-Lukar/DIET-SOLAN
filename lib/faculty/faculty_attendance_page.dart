@@ -5,7 +5,7 @@ class FacultyAttendancePage extends StatefulWidget {
   final String facultyName;
   final List<String> subjects;
 
-  FacultyAttendancePage({required this.facultyName, required this.subjects});
+  const FacultyAttendancePage({super.key, required this.facultyName, required this.subjects});
 
   @override
   _FacultyAttendancePageState createState() => _FacultyAttendancePageState();
@@ -38,10 +38,11 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
     );
-    if (picked != null && picked != selectedDate)
+    if (picked != null && picked != selectedDate) {
       setState(() {
         selectedDate = picked;
       });
+    }
   }
 
   void _showAttendanceDetails(BuildContext context, String student, Map<String, String> records) {
@@ -124,7 +125,7 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
         ),
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.calendar_today),
+            icon: const Icon(Icons.calendar_today),
             onPressed: () => _selectDate(context),
           ),
         ],

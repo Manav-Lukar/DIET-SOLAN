@@ -227,7 +227,7 @@ void main() {
       year: '2024',
       fineData: const {},
       subjectsData: const [],
-      username: '', attendance: {},
+      username: '', attendance: const {},
     ),
   ));
 }

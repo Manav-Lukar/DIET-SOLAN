@@ -31,7 +31,7 @@ class ClassSchedulePage extends StatelessWidget {
 
   final String facultyName;
 
-  ClassSchedulePage({Key? key, required this.facultyName}) : super(key: key);
+  ClassSchedulePage({super.key, required this.facultyName});
 
   @override
   Widget build(BuildContext context) {
@@ -88,11 +88,11 @@ class ClassSchedulePage extends StatelessWidget {
                         return ListTile(
                           title: Text(
                             classInfo.subject,
-                            style: TextStyle(color: Colors.black), // Text color
+                            style: const TextStyle(color: Colors.black), // Text color
                           ),
                           subtitle: Text(
                             '${classInfo.time} - ${classInfo.type}',
-                            style: TextStyle(color: Colors.black), // Text color
+                            style: const TextStyle(color: Colors.black), // Text color
                           ),
                         );
                       }).toList(),

@@ -4,7 +4,7 @@ import 'package:diet_portal/color_theme.dart';
 class ExamMarksPage extends StatefulWidget {
   final String username;
 
-  const ExamMarksPage({Key? key, required this.username, required List<String> notices}) : super(key: key);
+  const ExamMarksPage({super.key, required this.username, required List<String> notices});
 
   @override
   _ExamMarksPageState createState() => _ExamMarksPageState();
@@ -15,7 +15,7 @@ class _ExamMarksPageState extends State<ExamMarksPage> {
   String _selectedTerm = 'Term 1';
   Map<String, dynamic> _marksData = {};
 
-  Color _termTextColor = Colors.black;
+  final Color _termTextColor = Colors.black;
 
   @override
   void initState() {
@@ -112,7 +112,7 @@ class _ExamMarksPageState extends State<ExamMarksPage> {
                     color: ColorTheme.inputFieldBackground,
                   ),
                   alignment: Alignment.center,
-                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -123,7 +123,7 @@ class _ExamMarksPageState extends State<ExamMarksPage> {
                           fontSize: 16,
                         ),
                       ),
-                      Icon(Icons.arrow_drop_down),
+                      const Icon(Icons.arrow_drop_down),
                     ],
                   ),
                 ),
@@ -142,7 +142,7 @@ class _ExamMarksPageState extends State<ExamMarksPage> {
                         title: Text(subject),
                         trailing: Text(
                           marks.toString(),
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.black,
                             fontSize: 18.0,
                           ),

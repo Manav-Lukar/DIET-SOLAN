@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 class NoticesPage extends StatefulWidget {
-  const NoticesPage({Key? key, required this.onMessagePublished, required List notices})
-      : super(key: key);
+  const NoticesPage({super.key, required this.onMessagePublished, required List notices});
 
   final Function(String) onMessagePublished;
 
@@ -11,7 +10,7 @@ class NoticesPage extends StatefulWidget {
 }
 
 class _NoticesPageState extends State<NoticesPage> {
-  TextEditingController _messageController = TextEditingController();
+  final TextEditingController _messageController = TextEditingController();
 
   void _publishMessage() {
     String publishedMessage = _messageController.text;
@@ -24,14 +23,14 @@ class _NoticesPageState extends State<NoticesPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Message Published'),
+        title: const Text('Message Published'),
         content: Text('Published Message: $publishedMessage'),
         actions: <Widget>[
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: Text('OK'),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -60,7 +59,7 @@ class _NoticesPageState extends State<NoticesPage> {
       ),
       body: Container(
         padding: EdgeInsets.all(screenWidth * 0.05),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -77,23 +76,23 @@ class _NoticesPageState extends State<NoticesPage> {
               controller: _messageController,
               maxLines: 4,
               maxLength: 100,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Enter Message (Max 100 words)',
-                border: const OutlineInputBorder(),
+                border: OutlineInputBorder(),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _publishMessage,
-              child: const Text('Publish'),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.blue.shade300,
                 backgroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
+              child: const Text('Publish'),
             ),
           ],
         ),

@@ -4,12 +4,11 @@ import 'package:diet_portal/faculty/notices_page.dart';
 import 'package:diet_portal/student/student_personal_info.dart';
 import 'package:flutter/material.dart';
 import 'package:diet_portal/faculty/ClassSchedulePage.dart';
- // Import your PersonalInfoDialog
 
 class FacultyHomePage extends StatefulWidget {
   final String username;
 
-  const FacultyHomePage({Key? key, required this.username, required String email, required notices}) : super(key: key);
+  const FacultyHomePage({super.key, required this.username, required notices, required email});
 
   @override
   _FacultyHomePageState createState() => _FacultyHomePageState();
@@ -21,6 +20,16 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color(0xff3498db),
+        title: Text('Welcome, ${widget.username}'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, '/');
+          },
+        ),
+      ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -35,24 +44,15 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(height: 40.0), // Adjusted spacing for welcome message
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-              color: Colors.white.withOpacity(0.2),
-              child: Text(
-                'Welcome, ${widget.username}',
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-            ),
+            const SizedBox(height: 20.0), // Adjusted spacing for welcome message
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: GridView.count(
                   crossAxisCount: 2,
-                  childAspectRatio: 0.8, // Aspect ratio to adjust tile size
-                  mainAxisSpacing: 20.0, // Vertical spacing between tiles
-                  crossAxisSpacing: 20.0, // Horizontal spacing between tiles
+                  childAspectRatio: 0.8,
+                  mainAxisSpacing: 20.0,
+                  crossAxisSpacing: 20.0,
                   children: [
                     buildTile(context, 'Personal Info'),
                     buildTile(context, 'Class Schedule'),
@@ -86,7 +86,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
                 facultyInfo: {
                   'Username': widget.username,
                 },
-                studentInfo: {}, // Adjust as per your app logic
+                studentInfo: const {}, // Adjust as per your app logic
                 username: '', // Adjust as per your app logic
               );
             },
@@ -104,7 +104,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
             MaterialPageRoute(
               builder: (context) => FacultyAttendancePage(
                 facultyName: widget.username,
-                subjects: [
+                subjects: const [
                   'Mathematics',
                   'Physics',
                   'Chemistry',
