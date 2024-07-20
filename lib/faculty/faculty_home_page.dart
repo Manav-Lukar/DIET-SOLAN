@@ -1,14 +1,19 @@
+import 'package:flutter/material.dart';
+import 'package:diet_portal/faculty/ClassSchedulePage.dart';
 import 'package:diet_portal/faculty/exam_papers_page.dart';
 import 'package:diet_portal/faculty/faculty_attendance_page.dart';
 import 'package:diet_portal/faculty/notices_page.dart';
-import 'package:diet_portal/student/student_personal_info.dart';
-import 'package:flutter/material.dart';
-import 'package:diet_portal/faculty/ClassSchedulePage.dart';
+import 'package:diet_portal/faculty/faculty_personal_info.dart'; // Import the updated dialog
 
 class FacultyHomePage extends StatefulWidget {
   final String username;
+  final String email; // Add email parameter
 
-  const FacultyHomePage({super.key, required this.username, required notices, required email});
+  const FacultyHomePage({
+    Key? key,
+    required this.username,
+    required this.email, required notices,
+  }) : super(key: key);
 
   @override
   _FacultyHomePageState createState() => _FacultyHomePageState();
@@ -82,12 +87,13 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
           showDialog(
             context: context,
             builder: (BuildContext context) {
-              return PersonalInfoDialog(
+              return FacultyInfoDialog(
                 facultyInfo: {
-                  'Username': widget.username,
+                  'Name': widget.username,
+                  'Email': widget.email,
                 },
                 studentInfo: const {}, // Adjust as per your app logic
-                username: '', // Adjust as per your app logic
+                username: widget.username,
               );
             },
           );

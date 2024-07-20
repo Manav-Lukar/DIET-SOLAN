@@ -1,16 +1,16 @@
-import 'package:flutter/material.dart';
 import 'package:diet_portal/student/FeeDetailsPage.dart';
-import 'package:diet_portal/student/academic_details_page.dart';
-import 'package:diet_portal/student/class_attendance_page.dart';
-import 'package:diet_portal/student/exam_marks_page.dart';
-import 'package:diet_portal/student/exam_schedule_page.dart';
-import 'package:diet_portal/student/student_personal_info.dart'; // Make sure this import is correct
+import 'package:flutter/material.dart';
+import 'class_attendance_page.dart';
+import 'academic_details_page.dart';
+import 'exam_marks_page.dart';
+import 'exam_schedule_page.dart';
+import 'student_personal_info.dart';
 
 class StudentHomePage extends StatelessWidget {
   final String username;
   final List<String> notices;
   final List subjectsData;
-  final Map<String, dynamic> studentDetails;
+  final Map studentDetails;
 
   const StudentHomePage({
     Key? key,
@@ -24,10 +24,10 @@ class StudentHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xff3498db),
+        backgroundColor: const Color(0xff3498db),
         title: Text('Welcome, ${studentDetails['fName']}'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pushReplacementNamed(context, '/');
           },
@@ -63,7 +63,12 @@ class StudentHomePage extends StatelessWidget {
                     buildTile(context, 'Exam Schedule'),
                     buildTile(context, 'Class Attendance'),
                     buildTile(context, 'Exam Marks'),
-                  ],
+                  ].map((Widget tile) {
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: tile,
+                    );
+                  }).toList(),
                 ),
               ),
             ),
@@ -83,15 +88,18 @@ class StudentHomePage extends StatelessWidget {
               builder: (BuildContext context) {
                 return PersonalInfoDialog(
                   studentInfo: {
-                    'Name': '${studentDetails['fName']} ${studentDetails['lName']}',
+                    'ID': studentDetails['id'].toString(),
+                    'Enroll No': studentDetails['enrollNo'].toString(),
                     'Roll No': studentDetails['rollNo'].toString(),
-                    'Email': studentDetails['email'].toString(),
-                    // 'Date Of Birth': studentDetails['dob'].toString(),
+                    'Name': '${studentDetails['fName']} ${studentDetails['lName']}',
                     'Year': studentDetails['year'].toString(),
-                    'Section': studentDetails['section'] ?? 'N/A',
-                    'Father\'s Name': studentDetails['fatherName'] ?? 'N/A',
-                    // 'Mother\'s Name': studentDetails['motherName'] ?? 'N/A',
-                  }, username: '', facultyInfo: {},
+                    'Section': studentDetails['section'] ?? '',
+                    'DOB': studentDetails['dob'] ?? '',
+                    'Email': studentDetails['email'] ?? '',
+                    'Father Name': studentDetails['fatherName'] ?? '',
+                  },
+                  username: '',
+                  facultyInfo: {},
                 );
               },
             );
@@ -121,20 +129,72 @@ class StudentHomePage extends StatelessWidget {
             );
             break;
           case 'Class Attendance':
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ClassAttendancePage(
-                  username: username,
-                  name: '${studentDetails['fName']} ${studentDetails['lName']}',
-                  rollNo: studentDetails['rollNo'].toString(),
-                  fineData: const {},
-                  subjectsData: subjectsData,
-                  year: studentDetails['year'],
-                  attendance: const {},
-                ),
-              ),
-            );
+Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => ClassAttendancePage(
+      username: username,
+      name: '${studentDetails['fName']} ${studentDetails['lName']}',
+      rollNo: studentDetails['rollNo'].toString(),  // Ensure this is a string
+      fineData: const {},
+      subjectsData: subjectsData,
+      year: studentDetails['year'].toString(),  // Ensure this is a string
+      attendance: const {
+        'Mathematics': {
+          '01-01-2024': 'P',
+          '01-02-2024': 'A',
+          '22-02-2024': 'A',
+          '11-04-2024': 'P',
+          '09-05-2024': 'L',
+        },
+        'Physics': {
+          '01-01-2024': 'P',
+          '01-02-2024': 'P',
+          '22-02-2024': 'A',
+          '11-04-2024': 'P',
+          '09-05-2024': 'L',
+          '30-03-2024': 'L',
+        },
+        'Chemistry': {
+          '01-01-2024': 'P',
+          '01-02-2024': 'A',
+          '22-02-2024': 'P',
+          '11-04-2024': 'P',
+          '09-05-2024': 'L',
+        },
+        'History': {
+          '01-01-2024': 'P',
+          '01-02-2024': 'P',
+          '22-02-2024': 'P',
+          '11-04-2024': 'A',
+          '09-05-2024': 'L',
+        },
+        'English': {
+          '01-01-2024': 'P',
+          '01-02-2024': 'A',
+          '22-02-2024': 'A',
+          '11-04-2024': 'P',
+          '09-05-2024': 'L',
+        },
+        'Economics': {
+          '01-01-2024': 'P',
+          '01-02-2024': 'P',
+          '22-02-2024': 'A',
+          '11-04-2024': 'P',
+          '09-05-2024': 'L',
+        },
+        'EVS': {
+          '01-01-2024': 'P',
+          '01-02-2024': 'P',
+          '22-02-2024': 'P',
+          '11-04-2024': 'P',
+          '09-05-2024': 'L',
+        },
+      },
+    ),
+  ),
+);
+
             break;
           case 'Exam Marks':
             Navigator.push(
