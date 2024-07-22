@@ -1,19 +1,14 @@
-import 'package:flutter/material.dart';
 import 'package:diet_portal/faculty/ClassSchedulePage.dart';
 import 'package:diet_portal/faculty/exam_papers_page.dart';
 import 'package:diet_portal/faculty/faculty_attendance_page.dart';
 import 'package:diet_portal/faculty/notices_page.dart';
-import 'package:diet_portal/faculty/faculty_personal_info.dart'; // Import the updated dialog
+import 'package:flutter/material.dart';
+import 'faculty_personal_info.dart'; // Updated import
 
 class FacultyHomePage extends StatefulWidget {
   final String username;
-  final String email; // Add email parameter
 
-  const FacultyHomePage({
-    Key? key,
-    required this.username,
-    required this.email, required notices,
-  }) : super(key: key);
+  const FacultyHomePage({super.key, required this.username, required notices, required email});
 
   @override
   _FacultyHomePageState createState() => _FacultyHomePageState();
@@ -26,10 +21,10 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xff3498db),
+        backgroundColor: const Color(0xff3498db),
         title: Text('Welcome, ${widget.username}'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pushReplacementNamed(context, '/');
           },
@@ -82,21 +77,22 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
 
   Widget buildTile(BuildContext context, String title) {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         if (title == 'Personal Info') {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return FacultyInfoDialog(
-                facultyInfo: {
-                  'Name': widget.username,
-                  'Email': widget.email,
-                },
-                studentInfo: const {}, // Adjust as per your app logic
-                username: widget.username,
-              );
-            },
-          );
+          // Fetch faculty info here before showing dialog
+          final response = await fetchFacultyInfo(); // Fetch data
+          if (response != null) {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return FacultyInfoDialog(
+                  facultyInfo: response,
+                  studentInfo: const {}, // Adjust as per your app logic
+                  username: widget.username,
+                );
+              },
+            );
+          }
         } else if (title == 'Class Schedule') {
           Navigator.push(
             context,
@@ -167,5 +163,20 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
         ),
       ),
     );
+  }
+
+  Future<Map<String, dynamic>?> fetchFacultyInfo() async {
+    // Implement API call here to fetch faculty info
+    // For now, return a sample response
+    return {
+      "Name": "Shubham",
+      "Email": "shubham5818@gmail.com",
+      "CoursesTeaching": [103, 104, 203, 204],
+      "ClassesTeaching": [
+        {"year": 1, "sections": ["A", "B"]},
+        {"year": 2, "sections": ["A"]}
+      ],
+      "Role": "Faculty"
+    };
   }
 }

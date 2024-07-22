@@ -15,7 +15,7 @@ class FacultyInfoDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text(' Personal Information'),
+      title: const Text('Personal Information'),
       content: SingleChildScrollView(
         child: ListBody(
           children: <Widget>[
@@ -23,7 +23,11 @@ class FacultyInfoDialog extends StatelessWidget {
             const SizedBox(height: 10),
             Text('Email: ${facultyInfo['Email'] ?? 'Not Available'}'),
             const SizedBox(height: 10),
-            // Add any other fields as needed
+            Text('Courses Teaching: ${facultyInfo['CoursesTeaching']?.join(', ') ?? 'Not Available'}'),
+            const SizedBox(height: 10),
+            Text('Classes Teaching: ${_formatClassesTeaching(facultyInfo['ClassesTeaching'])}'),
+            const SizedBox(height: 10),
+            Text('Role: ${facultyInfo['Role'] ?? 'Not Available'}'),
           ],
         ),
       ),
@@ -36,5 +40,17 @@ class FacultyInfoDialog extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _formatClassesTeaching(List<dynamic>? classesTeaching) {
+    if (classesTeaching == null || classesTeaching.isEmpty) {
+      return 'Not Available';
+    }
+
+    return classesTeaching.map((classInfo) {
+      final year = classInfo['year'];
+      final sections = (classInfo['sections'] as List<dynamic>?)?.join(', ');
+      return 'Year $year: Sections $sections';
+    }).join('\n');
   }
 }
