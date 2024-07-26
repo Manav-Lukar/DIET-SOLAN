@@ -17,7 +17,8 @@ class ExamSchedulePage extends StatelessWidget {
     'English': '18th December 2024, 9:00 AM - 12:00 PM',
   };
 
-   ExamSchedulePage({super.key, required String username});
+  // Constructor
+  ExamSchedulePage({super.key, required String username, required List subjectsData, required Map<String, dynamic> studentDetails});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +28,7 @@ class ExamSchedulePage extends StatelessWidget {
         appBar: AppBar(
           title: const Text('Exam Schedule'),
           bottom: const TabBar(
-            labelColor: Colors.white, // Color for selected tab
+            labelColor: Color.fromARGB(255, 14, 12, 12), // Color for selected tab
             unselectedLabelColor: Colors.black54, // Color for unselected tabs
             labelStyle: TextStyle(fontWeight: FontWeight.bold), // Bold text for selected tab
             unselectedLabelStyle: TextStyle(fontWeight: FontWeight.bold), // Bold text for unselected tabs
@@ -37,15 +38,23 @@ class ExamSchedulePage extends StatelessWidget {
             ],
           ),
           flexibleSpace: Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xff3498db),
-                  Color(0xff4a77f2),
-                ],
+                Color(0xffe6f7ff), // Deep blue for consistency
+                Color(0xffe6f7ff), // Light blue for consistency
+              ],
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  spreadRadius: 0,
+                  blurRadius: 6,
+                  offset: Offset(0, 2), // Shadow position
+                ),
+              ],
             ),
           ),
         ),
@@ -66,8 +75,8 @@ class ExamSchedulePage extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xff3498db),
-            Color(0xff4a77f2),
+            Color(0xffe6f7ff), // Light blue gradient for a fresh look
+            Color(0xffcceeff), // Slightly darker blue for contrast
           ],
         ),
       ),
@@ -75,16 +84,16 @@ class ExamSchedulePage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         children: schedule.entries.map((entry) {
           return Card(
-            color: Colors.white.withOpacity(0.6), // Semi-transparent white color
+            color: Colors.white.withOpacity(0.8), // Semi-transparent white color
             margin: const EdgeInsets.symmetric(vertical: 8.0),
             child: ListTile(
               title: Text(
                 entry.key,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
               ),
               subtitle: Text(
                 entry.value,
-                style: const TextStyle(fontWeight: FontWeight.w500),
+                style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.black54),
               ),
             ),
           );

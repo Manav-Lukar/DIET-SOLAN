@@ -1,14 +1,15 @@
+
+import 'package:flutter/material.dart';
 import 'package:diet_portal/faculty/ClassSchedulePage.dart';
 import 'package:diet_portal/faculty/exam_papers_page.dart';
 import 'package:diet_portal/faculty/faculty_attendance_page.dart';
 import 'package:diet_portal/faculty/notices_page.dart';
-import 'package:flutter/material.dart';
-import 'faculty_personal_info.dart'; // Updated import
+import 'package:diet_portal/faculty/faculty_personal_info.dart'; // Updated import
 
 class FacultyHomePage extends StatefulWidget {
   final String username;
 
-  const FacultyHomePage({super.key, required this.username, required notices, required email});
+  const FacultyHomePage({super.key, required this.username, required email, required notices});
 
   @override
   _FacultyHomePageState createState() => _FacultyHomePageState();
@@ -21,14 +22,18 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xff3498db),
-        title: Text('Welcome, ${widget.username}'),
+        backgroundColor: Colors.white,
+        title: Text(
+          'Welcome, ${widget.username}',
+          style: const TextStyle(color: Colors.black),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
             Navigator.pushReplacementNamed(context, '/');
           },
         ),
+        elevation: 0,
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -36,30 +41,30 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xff3498db),
-              Color(0xff4a77f2),
+              Color(0xFFE0F7FA),
+              Color(0xFFE0F2F1),
             ],
           ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 20.0), // Adjusted spacing for welcome message
+            const SizedBox(height: 20.0),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: GridView.count(
                   crossAxisCount: 2,
                   childAspectRatio: 0.8,
                   mainAxisSpacing: 20.0,
                   crossAxisSpacing: 20.0,
                   children: [
-                    buildTile(context, 'Personal Info'),
-                    buildTile(context, 'Class Schedule'),
-                    buildTile(context, 'Attendance Records'),
-                    buildTile(context, 'Exam Papers'),
-                    buildTile(context, 'Notices'),
-                    buildTile(context, 'Reports'),
+                    buildTile(context, 'Personal Info', Icons.person),
+                    buildTile(context, 'Class Schedule', Icons.calendar_today),
+                    buildTile(context, 'Attendance Records', Icons.assignment),
+                    buildTile(context, 'Exam Papers', Icons.note),
+                    buildTile(context, 'Notices', Icons.notifications),
+                    buildTile(context, 'Reports', Icons.report),
                   ].map((Widget tile) {
                     return Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -75,7 +80,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
     );
   }
 
-  Widget buildTile(BuildContext context, String title) {
+  Widget buildTile(BuildContext context, String title, IconData icon) {
     return GestureDetector(
       onTap: () async {
         if (title == 'Personal Info') {
@@ -142,22 +147,42 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
           // Navigate to Reports page
         }
       },
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(15),
-          color: Colors.white.withOpacity(0.6),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
+          color: Colors.white,
         ),
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 40,
+                  color: const Color(0xff4a77f2),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
             ),
           ),
         ),

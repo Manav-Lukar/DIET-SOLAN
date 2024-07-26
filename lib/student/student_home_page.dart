@@ -2,15 +2,15 @@ import 'package:diet_portal/student/FeeDetailsPage.dart';
 import 'package:flutter/material.dart';
 import 'class_attendance_page.dart';
 import 'academic_details_page.dart';
-import 'exam_marks_page.dart';
 import 'exam_schedule_page.dart';
+import 'exam_marks_page.dart';
 import 'student_personal_info.dart';
 
 class StudentHomePage extends StatelessWidget {
   final String username;
   final List<String> notices;
-  final List subjectsData;
-  final Map studentDetails;
+  final List<dynamic> subjectsData;
+  final Map<String, dynamic> studentDetails;
 
   const StudentHomePage({
     Key? key,
@@ -24,14 +24,18 @@ class StudentHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xff3498db),
-        title: Text('Welcome, ${studentDetails['fName']}'),
+        backgroundColor: Color.fromARGB(255, 225, 244, 248),
+        title: Text(
+          'Welcome, ${studentDetails['fName']}',
+          style: const TextStyle(color: Colors.black),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
             Navigator.pushReplacementNamed(context, '/');
           },
         ),
+        elevation: 0,
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -39,30 +43,30 @@ class StudentHomePage extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xff3498db),
-              Color(0xff4a77f2),
+              Color(0xFFE0F7FA),
+              Color(0xFFE0F2F1),
             ],
           ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 40.0),
+            const SizedBox(height: 20.0),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: GridView.count(
                   crossAxisCount: 2,
                   childAspectRatio: 0.8,
                   mainAxisSpacing: 20.0,
                   crossAxisSpacing: 20.0,
                   children: [
-                    buildTile(context, 'Personal Info'),
-                    buildTile(context, 'Fee Details'),
-                    buildTile(context, 'Academic Details'),
-                    buildTile(context, 'Exam Schedule'),
-                    buildTile(context, 'Class Attendance'),
-                    buildTile(context, 'Exam Marks'),
+                    buildTile(context, 'Personal Info', Icons.person),
+                    buildTile(context, 'Fee Details', Icons.account_balance),
+                    buildTile(context, 'Academic Details', Icons.school),
+                    buildTile(context, 'Exam Schedule', Icons.schedule),
+                    buildTile(context, 'Class Attendance', Icons.assignment),
+                    buildTile(context, 'Exam Marks', Icons.assessment),
                   ].map((Widget tile) {
                     return Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -78,7 +82,7 @@ class StudentHomePage extends StatelessWidget {
     );
   }
 
-  Widget buildTile(BuildContext context, String title) {
+  Widget buildTile(BuildContext context, String title, IconData icon) {
     return GestureDetector(
       onTap: () {
         switch (title) {
@@ -108,7 +112,7 @@ class StudentHomePage extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => FeeDetailsPage(username: username),
+                builder: (context) => FeeDetailsPage(username: username, studentDetails: {},),
               ),
             );
             break;
@@ -116,7 +120,7 @@ class StudentHomePage extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => AcademicDetailsPage(username: username),
+                builder: (context) => AcademicDetailsPage(username: username, subjectsData: [], studentDetails: {},),
               ),
             );
             break;
@@ -124,77 +128,25 @@ class StudentHomePage extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ExamSchedulePage(username: username),
+                builder: (context) => ExamSchedulePage(username: username, studentDetails: {}, subjectsData: [],),
               ),
             );
             break;
           case 'Class Attendance':
-Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => ClassAttendancePage(
-      username: username,
-      name: '${studentDetails['fName']} ${studentDetails['lName']}',
-      rollNo: studentDetails['rollNo'].toString(),  // Ensure this is a string
-      fineData: const {},
-      subjectsData: subjectsData,
-      year: studentDetails['year'].toString(),  // Ensure this is a string
-      attendance: const {
-        'Mathematics': {
-          '01-01-2024': 'P',
-          '01-02-2024': 'A',
-          '22-02-2024': 'A',
-          '11-04-2024': 'P',
-          '09-05-2024': 'L',
-        },
-        'Physics': {
-          '01-01-2024': 'P',
-          '01-02-2024': 'P',
-          '22-02-2024': 'A',
-          '11-04-2024': 'P',
-          '09-05-2024': 'L',
-          '30-03-2024': 'L',
-        },
-        'Chemistry': {
-          '01-01-2024': 'P',
-          '01-02-2024': 'A',
-          '22-02-2024': 'P',
-          '11-04-2024': 'P',
-          '09-05-2024': 'L',
-        },
-        'History': {
-          '01-01-2024': 'P',
-          '01-02-2024': 'P',
-          '22-02-2024': 'P',
-          '11-04-2024': 'A',
-          '09-05-2024': 'L',
-        },
-        'English': {
-          '01-01-2024': 'P',
-          '01-02-2024': 'A',
-          '22-02-2024': 'A',
-          '11-04-2024': 'P',
-          '09-05-2024': 'L',
-        },
-        'Economics': {
-          '01-01-2024': 'P',
-          '01-02-2024': 'P',
-          '22-02-2024': 'A',
-          '11-04-2024': 'P',
-          '09-05-2024': 'L',
-        },
-        'EVS': {
-          '01-01-2024': 'P',
-          '01-02-2024': 'P',
-          '22-02-2024': 'P',
-          '11-04-2024': 'P',
-          '09-05-2024': 'L',
-        },
-      },
-    ),
-  ),
-);
-
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ClassAttendancePage(
+                  enrollNo: studentDetails['enrollNo'].toString(),
+                  username: username,
+                  name: '${studentDetails['fName']} ${studentDetails['lName']}',
+                  rollNo: studentDetails['rollNo'].toString(),
+                  fineData: const {},
+                  subjectsData: subjectsData,
+                  year: studentDetails['year'].toString(),
+                ),
+              ),
+            );
             break;
           case 'Exam Marks':
             Navigator.push(
@@ -202,7 +154,7 @@ Navigator.push(
               MaterialPageRoute(
                 builder: (context) => ExamMarksPage(
                   username: username,
-                  notices: notices,
+                  notices: notices, year: '', subjectsData: [], studentDetails: {},
                 ),
               ),
             );
@@ -211,22 +163,42 @@ Navigator.push(
             break;
         }
       },
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(15),
-          color: Colors.white.withOpacity(0.6),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
+          color: Colors.white,
         ),
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 40,
+                  color: const Color(0xff4a77f2),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -234,3 +206,4 @@ Navigator.push(
     );
   }
 }
+
