@@ -1,15 +1,16 @@
-
 import 'package:flutter/material.dart';
 import 'package:diet_portal/faculty/ClassSchedulePage.dart';
-import 'package:diet_portal/faculty/exam_papers_page.dart';
-import 'package:diet_portal/faculty/faculty_attendance_page.dart';
 import 'package:diet_portal/faculty/notices_page.dart';
-import 'package:diet_portal/faculty/faculty_personal_info.dart'; // Updated import
+import 'package:diet_portal/faculty/faculty_personal_info.dart';
+import 'package:diet_portal/faculty/faculty_attendance_page.dart';
 
 class FacultyHomePage extends StatefulWidget {
   final String username;
 
-  const FacultyHomePage({super.key, required this.username, required email, required notices});
+  const FacultyHomePage({
+    Key? key,
+    required this.username, required notices, required email,
+  }) : super(key: key);
 
   @override
   _FacultyHomePageState createState() => _FacultyHomePageState();
@@ -17,15 +18,51 @@ class FacultyHomePage extends StatefulWidget {
 
 class _FacultyHomePageState extends State<FacultyHomePage> {
   List<String> notices = [];
+  bool isLoadingNotices = false;
+  bool isLoadingFacultyInfo = false;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchNotices(); // Fetch notices on initial load
+  }
+
+  Future<void> fetchNotices() async {
+    setState(() {
+      isLoadingNotices = true;
+    });
+    // Simulate network call
+    await Future.delayed(const Duration(seconds: 2));
+    setState(() {
+      notices = ['Notice 1', 'Notice 2']; // Update with actual data
+      isLoadingNotices = false;
+    });
+  }
+
+  Future<Map<String, Object>> fetchFacultyInfo() async {
+    setState(() {
+      isLoadingFacultyInfo = true;
+    });
+    // Simulate network call
+    await Future.delayed(const Duration(seconds: 2));
+    setState(() {
+      isLoadingFacultyInfo = false;
+    });
+    return {
+      "Name": "Shubham",
+      "Email": "shubham5818@gmail.com",
+      "CoursesTeaching": [103, 104, 203]
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color.fromARGB(255, 225, 244, 248),
         title: Text(
           'Welcome, ${widget.username}',
-          style: const TextStyle(color: Colors.black),
+          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -50,49 +87,125 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 20.0),
+            _buildNoticesSection(),
+            const SizedBox(height: 20.0),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: GridView.count(
                   crossAxisCount: 2,
-                  childAspectRatio: 0.8,
+                  childAspectRatio: 0.9,
                   mainAxisSpacing: 20.0,
                   crossAxisSpacing: 20.0,
                   children: [
-                    buildTile(context, 'Personal Info', Icons.person),
-                    buildTile(context, 'Class Schedule', Icons.calendar_today),
-                    buildTile(context, 'Attendance Records', Icons.assignment),
-                    buildTile(context, 'Exam Papers', Icons.note),
-                    buildTile(context, 'Notices', Icons.notifications),
-                    buildTile(context, 'Reports', Icons.report),
-                  ].map((Widget tile) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: tile,
-                    );
-                  }).toList(),
+                    buildTile(context, 'Personal Info', Icons.person, Colors.blue),
+                    buildTile(context, 'Class Schedule', Icons.calendar_today, Colors.green),
+                    buildTile(context, 'Attendance Records', Icons.assignment, Colors.orange),
+                    buildTile(context, 'Notices', Icons.notifications, Colors.red),
+                  ],
                 ),
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget buildTile(BuildContext context, String title, IconData icon) {
-    return GestureDetector(
-      onTap: () async {
-        if (title == 'Personal Info') {
-          // Fetch faculty info here before showing dialog
-          final response = await fetchFacultyInfo(); // Fetch data
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final response = await fetchFacultyInfo();
           if (response != null) {
             showDialog(
               context: context,
               builder: (BuildContext context) {
                 return FacultyInfoDialog(
                   facultyInfo: response,
-                  studentInfo: const {}, // Adjust as per your app logic
+                  studentInfo: const {},
+                  username: widget.username,
+                );
+              },
+            );
+          }
+        },
+        backgroundColor: Colors.blue,
+        child: const Icon(Icons.account_circle, color: Colors.white),
+        tooltip: 'View Personal Info',
+      ),
+    );
+  }
+
+  Widget _buildNoticesSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Recent Notices',
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: isLoadingNotices
+                      ? const CircularProgressIndicator()
+                      : const Icon(Icons.refresh, color: Colors.blue),
+                  onPressed: isLoadingNotices ? null : fetchNotices,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            ...notices.map((notice) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.notifications, size: 16, color: Colors.black54),
+                  const SizedBox(width: 8.0),
+                  Expanded(
+                    child: Text(
+                      '• $notice',
+                      style: const TextStyle(color: Colors.black87),
+                    ),
+                  ),
+                ],
+              ),
+            )).toList(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildTile(BuildContext context, String title, IconData icon, Color color) {
+    return GestureDetector(
+      onTap: () async {
+        if (title == 'Personal Info') {
+          final response = await fetchFacultyInfo();
+          if (response != null) {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return FacultyInfoDialog(
+                  facultyInfo: response,
+                  studentInfo: const {},
                   username: widget.username,
                 );
               },
@@ -115,17 +228,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
                   'Mathematics',
                   'Physics',
                   'Chemistry',
-                ], // Example subjects
-              ),
-            ),
-          );
-        } else if (title == 'Exam Papers') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ExamPapersPage(
-                facultyName: widget.username,
-                username: '',
+                ],
               ),
             ),
           );
@@ -143,8 +246,6 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
               ),
             ),
           );
-        } else if (title == 'Reports') {
-          // Navigate to Reports page
         }
       },
       child: AnimatedContainer(
@@ -160,6 +261,11 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
             ),
           ],
           color: Colors.white,
+          gradient: LinearGradient(
+            colors: [color.withOpacity(0.2), Colors.white],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
         child: Center(
           child: Padding(
@@ -170,7 +276,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
                 Icon(
                   icon,
                   size: 40,
-                  color: const Color(0xff4a77f2),
+                  color: color,
                 ),
                 const SizedBox(height: 10),
                 Text(
@@ -188,20 +294,5 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
         ),
       ),
     );
-  }
-
-  Future<Map<String, dynamic>?> fetchFacultyInfo() async {
-    // Implement API call here to fetch faculty info
-    // For now, return a sample response
-    return {
-      "Name": "Shubham",
-      "Email": "shubham5818@gmail.com",
-      "CoursesTeaching": [103, 104, 203, 204],
-      "ClassesTeaching": [
-        {"year": 1, "sections": ["A", "B"]},
-        {"year": 2, "sections": ["A"]}
-      ],
-      "Role": "Faculty"
-    };
   }
 }

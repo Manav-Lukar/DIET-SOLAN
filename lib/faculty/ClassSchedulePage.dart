@@ -37,19 +37,21 @@ class ClassSchedulePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Class Schedule'),
+        title: Text('Class Schedule', style: TextStyle(color: Colors.black)),
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
               colors: [
-                Colors.blue.shade300,
-                Colors.blue.shade500,
+                Color(0xffe6f7ff),
+                Color(0xffcceeff),
               ],
             ),
           ),
         ),
+        elevation: 0,
+        centerTitle: true,
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -57,42 +59,72 @@ class ClassSchedulePage extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.blue.shade300,
-              Colors.blue.shade500,
+              Color(0xffe6f7ff),
+              Color(0xffcceeff),
             ],
           ),
         ),
         child: ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           itemCount: schedules.length,
           itemBuilder: (context, index) {
             final schedule = schedules[index];
             return Card(
-              margin: const EdgeInsets.all(10),
-              color: Colors.blue.shade300,
+              margin: const EdgeInsets.symmetric(vertical: 10.0),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.0),
+              ),
+              elevation: 6.0,
+              shadowColor: Colors.blue.shade100,
+              color: Colors.white,
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(12.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       schedule.day,
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: TextStyle(
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black, // Text color
+                        color: Colors.blue.shade800,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     Column(
                       children: schedule.classes.map((classInfo) {
-                        return ListTile(
-                          title: Text(
-                            classInfo.subject,
-                            style: const TextStyle(color: Colors.black), // Text color
-                          ),
-                          subtitle: Text(
-                            '${classInfo.time} - ${classInfo.type}',
-                            style: const TextStyle(color: Colors.black), // Text color
+                        return Container(
+                          margin: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                                vertical: 8.0, horizontal: 16.0),
+                            tileColor: Colors.blue.shade50,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            leading: Icon(
+                              classInfo.type == 'Lecture'
+                                  ? Icons.school
+                                  : Icons.laptop,
+                              color: classInfo.type == 'Lecture'
+                                  ? Colors.indigo.shade300
+                                  : Colors.green.shade600,
+                            ),
+                            title: Text(
+                              classInfo.subject,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            subtitle: Text(
+                              '${classInfo.time} - ${classInfo.type}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black54,
+                              ),
+                            ),
                           ),
                         );
                       }).toList(),

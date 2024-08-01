@@ -16,8 +16,7 @@ class AcademicDetailsPage extends StatelessWidget {
     'Geography': 'Ms. R. Joshi',
   };
 
-  // Constructor
-  AcademicDetailsPage({super.key, required String username, required List subjectsData, required Map<String, dynamic> studentDetails});
+  AcademicDetailsPage({super.key, required String username, required List subjectsData, required Map<String, dynamic> studentDetails, required studentName, required List subjects, required String rollNo});
 
   @override
   Widget build(BuildContext context) {
@@ -30,8 +29,8 @@ class AcademicDetailsPage extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color(0xffe6f7ff), // Deep blue for consistency
-                Color(0xffe6f7ff), // Light blue for consistency
+                Color(0xffe6f7ff),
+                Color(0xffcceeff),
               ],
             ),
             boxShadow: [
@@ -39,7 +38,7 @@ class AcademicDetailsPage extends StatelessWidget {
                 color: Colors.black.withOpacity(0.3),
                 spreadRadius: 0,
                 blurRadius: 6,
-                offset: Offset(0, 2), // Shadow position
+                offset: Offset(0, 2),
               ),
             ],
           ),
@@ -51,8 +50,8 @@ class AcademicDetailsPage extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xffe6f7ff), // Light blue gradient for a fresh look
-              Color(0xffcceeff), // Slightly darker blue for contrast
+              Color(0xffe6f7ff),
+              Color(0xffcceeff),
             ],
           ),
         ),
@@ -60,28 +59,30 @@ class AcademicDetailsPage extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           children: [
             Card(
-              color: Colors.white.withOpacity(0.8), // Semi-transparent white color
+              color: Colors.white.withOpacity(0.9),
               margin: const EdgeInsets.symmetric(vertical: 8.0),
-              child: ListTile(
-                title: Text(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
                   'Name: $studentName\nRoll No.: $rollNo\nCourse/Branch: $courseBranch\nCurrent Year: $currentYear',
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 16),
                 ),
               ),
             ),
             ...academicDetails.entries.map((entry) {
               return Card(
-                color: Colors.white.withOpacity(0.8), // Semi-transparent white color
+                color: Colors.white.withOpacity(0.9),
                 margin: const EdgeInsets.symmetric(vertical: 8.0),
                 child: ListTile(
                   title: Text(
                     entry.key,
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 16),
                   ),
                   subtitle: Text(
                     entry.value,
-                    style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.black54),
+                    style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.black54, fontSize: 14),
                   ),
+                  leading: Icon(Icons.school, color: Colors.blue.shade300),
                 ),
               );
             }).toList(),

@@ -5,7 +5,11 @@ class FacultyAttendancePage extends StatefulWidget {
   final String facultyName;
   final List<String> subjects;
 
-  const FacultyAttendancePage({super.key, required this.facultyName, required this.subjects});
+  const FacultyAttendancePage({
+    Key? key,
+    required this.facultyName,
+    required this.subjects,
+  }) : super(key: key);
 
   @override
   _FacultyAttendancePageState createState() => _FacultyAttendancePageState();
@@ -19,114 +23,65 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
         'Physics': 'A',
         'Chemistry': 'L',
       },
+      '15-07-2024': {
+        'Mathematics': 'P',
+        'Physics': 'P',
+        'Chemistry': 'L',
+      },
     },
     'Student2': {
       '14-07-2024': {
-        'Mathematics': 'A',
+        'Mathematics': 'P',
         'Physics': 'P',
+        'Chemistry': 'P',
+      },
+      '15-07-2024': {
+        'Mathematics': 'A',
+        'Physics': 'L',
         'Chemistry': 'P',
       },
     },
   };
 
-  DateTime selectedDate = DateTime.now();
+  List<String> selectedSubjects = [];
+  List<String> students = [];
+  String selectedDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
 
-  void _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    if (picked != null && picked != selectedDate) {
-      setState(() {
-        selectedDate = picked;
-      });
-    }
-  }
-
-  void _showAttendanceDetails(BuildContext context, String student, Map<String, String> records) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Attendance Details for $student on ${DateFormat('dd-MM-yyyy').format(selectedDate)}'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: records.entries.map((entry) {
-              return ListTile(
-                leading: Icon(
-                  entry.value == 'P'
-                      ? Icons.check_circle
-                      : entry.value == 'A'
-                          ? Icons.cancel
-                          : Icons.info,
-                  color: entry.value == 'P'
-                      ? Colors.green
-                      : entry.value == 'A'
-                          ? Colors.red
-                          : Colors.orange,
-                ),
-                title: Text(
-                  '${entry.key}: ${entry.value == 'P'
-                          ? 'Present'
-                          : entry.value == 'A'
-                              ? 'Absent'
-                              : 'Leave'}',
-                ),
-                trailing: PopupMenuButton<String>(
-                  onSelected: (value) {
-                    setState(() {
-                      records[entry.key] = value;
-                    });
-                  },
-                  itemBuilder: (BuildContext context) {
-                    return ['P', 'A', 'L'].map((String choice) {
-                      return PopupMenuItem<String>(
-                        value: choice,
-                        child: Text(choice),
-                      );
-                    }).toList();
-                  },
-                ),
-              );
-            }).toList(),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Close'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
+  @override
+  void initState() {
+    super.initState();
+    selectedSubjects = widget.subjects;
+    students = attendance.keys.toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+    final ThemeData theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text(' Attendance Records'),
+        title: const Text('Attendance Records'),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
               colors: [
-                Color(0xff3498db),
-                Color(0xff4a77f2),
+                Color(0xffe6f7ff),
+                Color(0xffcceeff),
               ],
             ),
           ),
         ),
-        actions: <Widget>[
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        actions: [
           IconButton(
-            icon: const Icon(Icons.calendar_today),
-            onPressed: () => _selectDate(context),
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              // Refresh attendance data
+            },
           ),
         ],
       ),
@@ -136,55 +91,156 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xff3498db),
-              Color(0xff4a77f2),
+              Color(0xffe6f7ff),
+              Color(0xffcceeff),
             ],
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20.0),
-              color: Colors.white.withOpacity(0.2),
-              child: Text(
-                'Date: $formattedDate',
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Faculty: ${widget.facultyName}',
+                style: theme.textTheme.headline6?.copyWith(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                children: attendance.entries.map((entry) {
-                  return Card(
-                    color: Colors.white.withOpacity(0.6),
-                    margin: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: ListTile(
-                      title: Text(
-                        entry.key,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () {
-                          if (entry.value.containsKey(formattedDate)) {
-                            _showAttendanceDetails(context, entry.key, entry.value[formattedDate]!);
-                          } else {
-                            setState(() {
-                              entry.value[formattedDate] = {
-                                for (var subject in widget.subjects) subject: 'A'
-                              };
-                            });
-                            _showAttendanceDetails(context, entry.key, entry.value[formattedDate]!);
-                          }
-                        },
-                      ),
+              const SizedBox(height: 20.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Select Date:',
+                    style: theme.textTheme.subtitle1?.copyWith(
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w500,
                     ),
-                  );
-                }).toList(),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (pickedDate != null) {
+                        setState(() {
+                          selectedDate = DateFormat('dd-MM-yyyy').format(pickedDate);
+                        });
+                      }
+                    },
+                    child: Text(
+                      selectedDate,
+                      style: theme.textTheme.button?.copyWith(color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20.0),
+                      ),
+                      elevation: 5,
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 20.0),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: students.length,
+                  itemBuilder: (context, index) {
+                    String studentName = students[index];
+                    return Card(
+                      color: Colors.white.withOpacity(0.9),
+                      elevation: 4.0,
+                      margin: const EdgeInsets.symmetric(vertical: 8.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              studentName,
+                              style: theme.textTheme.headline6?.copyWith(
+                                color: Colors.black87,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 12.0),
+                            ...selectedSubjects.map((subject) {
+                              return Container(
+                                margin: const EdgeInsets.symmetric(vertical: 6.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      subject,
+                                      style: theme.textTheme.subtitle1?.copyWith(
+                                        color: Colors.black54,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    DropdownButton<String>(
+                                      value: attendance[studentName]?[selectedDate]?[subject] ?? 'P',
+                                      onChanged: (String? newValue) {
+                                        setState(() {
+                                          attendance[studentName]?[selectedDate]?[subject] = newValue!;
+                                        });
+                                      },
+                                      items: <String>['P', 'A', 'L']
+                                          .map<DropdownMenuItem<String>>((String value) {
+                                        return DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                value == 'P'
+                                                    ? Icons.check_circle
+                                                    : value == 'A'
+                                                        ? Icons.cancel
+                                                        : Icons.access_time,
+                                                color: value == 'P'
+                                                    ? Colors.green
+                                                    : value == 'A'
+                                                        ? Colors.red
+                                                        : Colors.orange,
+                                              ),
+                                              const SizedBox(width: 8.0),
+                                              Text(
+                                                value,
+                                                style: TextStyle(
+                                                  color: value == 'P'
+                                                      ? Colors.green
+                                                      : value == 'A'
+                                                          ? Colors.red
+                                                          : Colors.orange,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

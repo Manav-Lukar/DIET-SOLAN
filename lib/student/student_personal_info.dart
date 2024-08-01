@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 
 class PersonalInfoDialog extends StatelessWidget {
   final Map<String, String> studentInfo;
+  final String username; // Unused here but included as per original code
+  final Map<String, String> facultyInfo; // Unused here but included as per original code
 
   const PersonalInfoDialog({
     Key? key,
-    required this.studentInfo, required String username, required Map<String, String> facultyInfo,
+    required this.studentInfo,
+    required this.username,
+    required this.facultyInfo, required String role, required Map info,
   }) : super(key: key);
 
   @override

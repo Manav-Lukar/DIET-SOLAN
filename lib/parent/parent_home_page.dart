@@ -1,30 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:diet_portal/student/FeeDetailsPage.dart';
-import 'package:diet_portal/student/class_attendance_page.dart';
 import 'package:diet_portal/student/academic_details_page.dart';
+import 'package:diet_portal/student/class_attendance_page.dart';
 import 'package:diet_portal/student/student_personal_info.dart';
 
-class StudentHomePage extends StatelessWidget {
-  final String username;
-  final List<String> notices;
-  final List<dynamic> subjectsData;
-  final Map<String, dynamic> studentDetails;
+class ParentHomePage extends StatelessWidget {
+  final String parentName;
+  final String studentName;
+  final String rollNo;
+  final String year;
+  final String section;
 
-  const StudentHomePage({
+  const ParentHomePage({
     Key? key,
-    required this.username,
-    required this.notices,
-    required this.subjectsData,
-    required this.studentDetails, required String year, required String studentName, required String rollNo, required section,
+    required this.parentName,
+    required this.studentName,
+    required this.rollNo,
+    required this.year,
+    required this.section,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 225, 244, 248),
+        backgroundColor: Color.fromARGB(255, 225, 244, 248),
         title: Text(
-          'Welcome, ${studentDetails['fName']}',
+          'Welcome, $parentName',
           style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
@@ -72,6 +74,34 @@ class StudentHomePage extends StatelessWidget {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _showPersonalInfoDialog(context);
+        },
+        backgroundColor: Colors.blue,
+        child: Icon(Icons.account_circle, color: Colors.white),
+        tooltip: 'View Personal Info',
+      ),
+    );
+  }
+
+  void _showPersonalInfoDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return PersonalInfoDialog(
+          studentInfo: {
+            'Name': studentName,
+            'Roll No': rollNo,
+            'Year': year,
+            'Section': section,
+            'Student Name': studentName,
+            'Parent Name': parentName,
+          },
+          username: '',
+          facultyInfo: {}, role: '', info: {},
+        );
+      },
     );
   }
 
@@ -106,17 +136,20 @@ class StudentHomePage extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                // Refresh button (if needed)
-                // IconButton(
-                //   icon: isLoadingNotices
-                //       ? const CircularProgressIndicator()
-                //       : const Icon(Icons.refresh, color: Colors.blue),
-                //   onPressed: isLoadingNotices ? null : fetchNotices,
-                // ),
+                IconButton(
+                  icon: Icon(Icons.refresh, color: Colors.blue),
+                  onPressed: () {
+                    // Handle refresh button press
+                  },
+                ),
               ],
             ),
             const SizedBox(height: 10),
-            ...notices.map((notice) => Padding(
+            // Sample notices (can be fetched from an API if needed)
+            ...[
+              'Notice 1: School reopens next week.',
+              'Notice 2: Parent-teacher meeting scheduled.',
+            ].map((notice) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 4.0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,39 +176,19 @@ class StudentHomePage extends StatelessWidget {
       onTap: () {
         switch (title) {
           case 'Personal Info':
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return PersonalInfoDialog(
-                  studentInfo: {
-                    'ID': studentDetails['id'].toString(),
-                    'Enroll No': studentDetails['enrollNo'].toString(),
-                    'Roll No': studentDetails['rollNo'].toString(),
-                    'Name': '${studentDetails['fName']} ${studentDetails['lName']}',
-                    'Year': studentDetails['year'].toString(),
-                    'Section': studentDetails['section'] ?? '',
-                    'DOB': studentDetails['dob'] ?? '',
-                    'Email': studentDetails['email'] ?? '',
-                    'Father Name': studentDetails['fatherName'] ?? '',
-                    'Mother Name': studentDetails['motherName'] ?? '', // Added
-                  },
-                  username: username,
-                  facultyInfo: {},
-                  role: '',
-                  info: {},
-                );
-              },
-            );
+            _showPersonalInfoDialog(context);
             break;
           case 'Fee Details':
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => FeeDetailsPage(
-                  username: username,
-                  studentDetails: studentDetails,
-                  studentName: studentDetails['fName'],
-                  rollNo: studentDetails['rollNo'].toString(),
+                  username: '',
+                  studentDetails: {
+                    'Name': studentName,
+                    'Roll No': rollNo,
+                  },
+                  studentName: studentName, rollNo: '',
                 ),
               ),
             );
@@ -185,12 +198,14 @@ class StudentHomePage extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (context) => AcademicDetailsPage(
-                  username: username,
-                  subjectsData: subjectsData,
-                  studentDetails: studentDetails,
-                  studentName: studentDetails['fName'],
-                  subjects: [],
-                  rollNo: studentDetails['rollNo'].toString(),
+                  username: '',
+                  subjectsData: [], // Update as needed
+                  studentDetails: {
+                    'Name': studentName,
+                    'Roll No': rollNo,
+                  },
+                  studentName: studentName,
+                  subjects: [], rollNo: '', // Update as needed
                 ),
               ),
             );
@@ -200,15 +215,14 @@ class StudentHomePage extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (context) => ClassAttendancePage(
-                  enrollNo: studentDetails['enrollNo'].toString(),
-                  username: username,
-                  name: '${studentDetails['fName']} ${studentDetails['lName']}',
-                  rollNo: studentDetails['rollNo'].toString(),
-                  fineData: const {},
-                  subjectsData: subjectsData,
-                  year: studentDetails['year'].toString(),
-                  studentName: studentDetails['fName'],
-                  section: studentDetails['section'] ?? '',
+                  enrollNo: rollNo,
+                  username: '',
+                  name: studentName,
+                  rollNo: rollNo,
+                  fineData: const {}, // Update as needed
+                  subjectsData: [], // Update as needed
+                  year: year,
+                  studentName: studentName, section: '',
                 ),
               ),
             );
@@ -220,6 +234,7 @@ class StudentHomePage extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
+          color: color,
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
@@ -229,37 +244,21 @@ class StudentHomePage extends StatelessWidget {
               offset: const Offset(0, 3),
             ),
           ],
-          color: Colors.white,
-          gradient: LinearGradient(
-            colors: [color.withOpacity(0.2), Colors.white],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
         ),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  icon,
-                  size: 40,
-                  color: color,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 40),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

@@ -12,8 +12,7 @@ class LoginPage extends StatefulWidget {
   _LoginPageState createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage>
-    with SingleTickerProviderStateMixin {
+class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String _errorMessage = '';
@@ -89,8 +88,9 @@ class _LoginPageState extends State<LoginPage>
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
 
+      final data = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
         final detailsKey = '${successRole.toLowerCase()}Details';
 
         if (data.containsKey(detailsKey) &&
@@ -105,13 +105,15 @@ class _LoginPageState extends State<LoginPage>
                   username: _usernameController.text,
                   notices: const [], // Adjust as per your app logic
                   subjectsData: const [], // Adjust as per your app logic
-                  studentDetails:
-                      userDetails, // Pass the entire studentDetails map
+                  studentDetails: userDetails, // Pass the entire studentDetails map
+                  studentName: '${userDetails['fName']} ${userDetails['lName']}',
+                  rollNo: userDetails['rollNo'].toString(),
+                  year: userDetails['year'].toString(),
+                  section: userDetails['section'],
                 ),
               ),
             );
           } else {
-            // For faculty
             final name = userDetails['Name'] ?? 'Faculty'; // Handle null case
             Navigator.pushReplacement(
               context,
@@ -286,8 +288,7 @@ class _LoginPageState extends State<LoginPage>
                       if (_errorMessage.isNotEmpty)
                         Text(
                           _errorMessage,
-                          style:
-                              TextStyle(color: Colors.red, fontSize: screenWidth * 0.04),
+                          style: TextStyle(color: Colors.red, fontSize: screenWidth * 0.04),
                         ),
                     ],
                   ),

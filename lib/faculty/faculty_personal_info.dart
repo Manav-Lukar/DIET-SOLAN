@@ -19,15 +19,26 @@ class FacultyInfoDialog extends StatelessWidget {
       content: SingleChildScrollView(
         child: ListBody(
           children: <Widget>[
-            Text('Name: ${facultyInfo['Name'] ?? 'Not Available'}'),
-            const SizedBox(height: 10),
-            Text('Email: ${facultyInfo['Email'] ?? 'Not Available'}'),
-            const SizedBox(height: 10),
-            Text('Courses Teaching: ${facultyInfo['CoursesTeaching']?.join(', ') ?? 'Not Available'}'),
-            const SizedBox(height: 10),
-            Text('Classes Teaching: ${_formatClassesTeaching(facultyInfo['ClassesTeaching'])}'),
-            const SizedBox(height: 10),
-            Text('Role: ${facultyInfo['Role'] ?? 'Not Available'}'),
+            ListTile(
+              title: const Text('Name'),
+              subtitle: Text(facultyInfo['Name'] ?? 'Not Available'),
+            ),
+            ListTile(
+              title: const Text('Email'),
+              subtitle: Text(facultyInfo['Email'] ?? 'Not Available'),
+            ),
+            ListTile(
+              title: const Text('Courses Teaching'),
+              subtitle: Text((facultyInfo['CoursesTeaching'] as List<dynamic>?)?.join(', ') ?? 'Not Available'),
+            ),
+            ListTile(
+              title: const Text('Classes Teaching'),
+              subtitle: Text(_formatClassesTeaching(facultyInfo['ClassesTeaching'])),
+            ),
+            ListTile(
+              title: const Text('Role'),
+              subtitle: Text(facultyInfo['Role'] ?? 'Not Available'),
+            ),
           ],
         ),
       ),

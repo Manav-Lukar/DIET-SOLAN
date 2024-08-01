@@ -20,7 +20,7 @@ class ClassAttendancePage extends StatefulWidget {
     required this.fineData,
     required this.subjectsData,
     required this.year,
-    required this.enrollNo,
+    required this.enrollNo, required studentName, required String section,
   }) : super(key: key);
 
   @override
@@ -38,7 +38,7 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
 
   Future<Map<String, Map<DateTime, String>>> fetchAttendanceData(String enrollNo) async {
     try {
-      final String token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdHVkZW50SWQiOiI2NjdlYWRiNGQ2NTkzMmU3MDQ2Yzg4MTMiLCJlbnJvbGxObyI6MjkxLCJyb2xlIjoiU3R1ZGVudCIsImlhdCI6MTcyMjAwNDg1NSwiZXhwIjoxNzIyMDkxMjU1fQ.RQ5_DYDa2oS6NdvF7RK1qfm1RSH8v3vjxW3eT-SWoL8';
+      const String token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdHVkZW50SWQiOiI2NjdlYWRiNGQ2NTkzMmU3MDQ2Yzg4MTMiLCJlbnJvbGxObyI6MjkxLCJyb2xlIjoiU3R1ZGVudCIsImlhdCI6MTcyMjAwNDg1NSwiZXhwIjoxNzIyMDkxMjU1fQ.RQ5_DYDa2oS6NdvF7RK1qfm1RSH8v3vjxW3eT-SWoL8';
 
       final response = await http.get(
         Uri.parse('https://student-attendance-system-ckb1.onrender.com/api/attendance/show-attendance-student/$enrollNo'),
@@ -88,9 +88,9 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Class Attendance'),
+        title: const Text('Class Attendance'),
         flexibleSpace: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -106,7 +106,7 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh),
             onPressed: () {
               setState(() {
                 _attendanceData = fetchAttendanceData(widget.enrollNo);
@@ -116,7 +116,7 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
         ],
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -130,11 +130,11 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
           future: _attendanceData,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(child: Text('No attendance data available.'));
+              return const Center(child: Text('No attendance data available.'));
             }
 
             final attendanceData = snapshot.data!;
@@ -151,20 +151,20 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
                   child: ExpansionTile(
                     title: Text(
                       courseName,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                         color: Colors.black87,
                       ),
                     ),
-                    tilePadding: EdgeInsets.symmetric(horizontal: 16.0),
+                    tilePadding: const EdgeInsets.symmetric(horizontal: 16.0),
                     children: courseAttendance.entries.map((entry) {
                       final formattedDate = DateFormat('dd/MM/yyyy').format(entry.key);
                       return ListTile(
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                         title: Text(
                           '$formattedDate: ${entry.value}',
-                          style: TextStyle(fontSize: 16),
+                          style: const TextStyle(fontSize: 16),
                         ),
                         leading: Icon(
                           entry.value == 'P' ? Icons.check_circle : Icons.cancel,

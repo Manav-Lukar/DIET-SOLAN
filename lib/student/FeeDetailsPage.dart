@@ -5,7 +5,7 @@ import 'dart:io';
 class FeeDetailsPage extends StatefulWidget {
   final String username;
 
-  const FeeDetailsPage({super.key, required this.username, required Map<String, dynamic> studentDetails});
+  const FeeDetailsPage({super.key, required this.username, required Map<String, dynamic> studentDetails, required studentName, required String rollNo});
 
   @override
   _FeeDetailsPageState createState() => _FeeDetailsPageState();
