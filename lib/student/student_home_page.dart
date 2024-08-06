@@ -7,7 +7,7 @@ import 'package:diet_portal/student/student_personal_info.dart';
 class StudentHomePage extends StatelessWidget {
   final String username;
   final List<String> notices;
-  final List<dynamic> subjectsData;
+  final List<dynamic> subjectsData; // This needs to be converted to List<int>
   final Map<String, dynamic> studentDetails;
 
   const StudentHomePage({
@@ -15,7 +15,7 @@ class StudentHomePage extends StatelessWidget {
     required this.username,
     required this.notices,
     required this.subjectsData,
-    required this.studentDetails, required String year, required String studentName, required String rollNo, required section,
+    required this.studentDetails, required String rollNo, required String studentName, required String year, required section,
   }) : super(key: key);
 
   @override
@@ -61,10 +61,92 @@ class StudentHomePage extends StatelessWidget {
                   mainAxisSpacing: 20.0,
                   crossAxisSpacing: 20.0,
                   children: [
-                    buildTile(context, 'Personal Info', Icons.person, Colors.blue),
-                    buildTile(context, 'Fee Details', Icons.account_balance, Colors.green),
-                    buildTile(context, 'Academic Details', Icons.school, Colors.orange),
-                    buildTile(context, 'Class Attendance', Icons.assignment, Colors.red),
+                    buildTile(
+                      context, 
+                      'Personal Info', 
+                      Icons.person, 
+                      Colors.blue,
+                      () => showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return PersonalInfoDialog(
+                            studentInfo: {
+                              'ID': studentDetails['id'].toString(),
+                              'Enroll No': studentDetails['enrollNo'].toString(),
+                              'Roll No': studentDetails['rollNo'].toString(),
+                              'Name': '${studentDetails['fName']} ${studentDetails['lName']}',
+                              'Year': studentDetails['year'].toString(),
+                              'Section': studentDetails['section'] ?? '',
+                              'DOB': studentDetails['dob'] ?? '',
+                              'Email': studentDetails['email'] ?? '',
+                              'Father Name': studentDetails['fatherName'] ?? '',
+                              'Mother Name': studentDetails['motherName'] ?? '',
+                            },
+                            username: username,
+                            facultyInfo: {},
+                            role: '',
+                            info: {},
+                          );
+                        },
+                      ),
+                    ),
+                    buildTile(
+                      context, 
+                      'Fee Details', 
+                      Icons.account_balance, 
+                      Colors.green,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FeeDetailsPage(
+                            username: username,
+                            studentDetails: studentDetails,
+                            studentName: studentDetails['fName'],
+                            rollNo: studentDetails['rollNo'].toString(),
+                          ),
+                        ),
+                      ),
+                    ),
+                    buildTile(
+                      context, 
+                      'Academic Details', 
+                      Icons.school, 
+                      Colors.orange,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AcademicDetailsPage(
+                            username: username,
+                            subjectsData: _convertToIntList(subjectsData), // Convert to List<int>
+                            studentDetails: studentDetails,
+                            studentName: studentDetails['fName'],
+                            rollNo: studentDetails['rollNo'].toString(), subjects: [],
+                          ),
+                        ),
+                      ),
+                    ),
+                    buildTile(
+                      context, 
+                      'Class Attendance', 
+                      Icons.assignment, 
+                      Colors.red,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ClassAttendancePage(
+                            enrollNo: studentDetails['enrollNo'].toString(),
+                            username: username,
+                            name: '${studentDetails['fName']} ${studentDetails['lName']}',
+                            rollNo: studentDetails['rollNo'].toString(),
+                            fineData: const {},
+                            subjectsData: subjectsData,
+                            year: studentDetails['year'].toString(),
+                            studentName: studentDetails['fName'],
+                            section: studentDetails['section'] ?? '',
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -95,10 +177,10 @@ class StudentHomePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Recent Notices',
                   style: TextStyle(
                     color: Colors.black87,
@@ -121,7 +203,7 @@ class StudentHomePage extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.notifications, size: 16, color: Colors.black54),
+                  const Icon(Icons.notifications, size: 16, color: Colors.black54),
                   const SizedBox(width: 8.0),
                   Expanded(
                     child: Text(
@@ -138,85 +220,9 @@ class StudentHomePage extends StatelessWidget {
     );
   }
 
-  Widget buildTile(BuildContext context, String title, IconData icon, Color color) {
+  Widget buildTile(BuildContext context, String title, IconData icon, Color color, VoidCallback onTap) {
     return GestureDetector(
-      onTap: () {
-        switch (title) {
-          case 'Personal Info':
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return PersonalInfoDialog(
-                  studentInfo: {
-                    'ID': studentDetails['id'].toString(),
-                    'Enroll No': studentDetails['enrollNo'].toString(),
-                    'Roll No': studentDetails['rollNo'].toString(),
-                    'Name': '${studentDetails['fName']} ${studentDetails['lName']}',
-                    'Year': studentDetails['year'].toString(),
-                    'Section': studentDetails['section'] ?? '',
-                    'DOB': studentDetails['dob'] ?? '',
-                    'Email': studentDetails['email'] ?? '',
-                    'Father Name': studentDetails['fatherName'] ?? '',
-                    'Mother Name': studentDetails['motherName'] ?? '', // Added
-                  },
-                  username: username,
-                  facultyInfo: {},
-                  role: '',
-                  info: {},
-                );
-              },
-            );
-            break;
-          case 'Fee Details':
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => FeeDetailsPage(
-                  username: username,
-                  studentDetails: studentDetails,
-                  studentName: studentDetails['fName'],
-                  rollNo: studentDetails['rollNo'].toString(),
-                ),
-              ),
-            );
-            break;
-          case 'Academic Details':
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AcademicDetailsPage(
-                  username: username,
-                  subjectsData: subjectsData,
-                  studentDetails: studentDetails,
-                  studentName: studentDetails['fName'],
-                  subjects: [],
-                  rollNo: studentDetails['rollNo'].toString(),
-                ),
-              ),
-            );
-            break;
-          case 'Class Attendance':
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ClassAttendancePage(
-                  enrollNo: studentDetails['enrollNo'].toString(),
-                  username: username,
-                  name: '${studentDetails['fName']} ${studentDetails['lName']}',
-                  rollNo: studentDetails['rollNo'].toString(),
-                  fineData: const {},
-                  subjectsData: subjectsData,
-                  year: studentDetails['year'].toString(),
-                  studentName: studentDetails['fName'],
-                  section: studentDetails['section'] ?? '',
-                ),
-              ),
-            );
-            break;
-          default:
-            break;
-        }
-      },
+      onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
@@ -263,5 +269,10 @@ class StudentHomePage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // Helper method to convert List<dynamic> to List<int>
+  List<int> _convertToIntList(List<dynamic> data) {
+    return data.map((item) => item is int ? item : int.tryParse(item.toString()) ?? 0).toList();
   }
 }

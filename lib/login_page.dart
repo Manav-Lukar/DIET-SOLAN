@@ -121,7 +121,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                 builder: (context) => FacultyHomePage(
                   username: name,
                   email: userDetails['email'] ?? '', // Handle null case
-                  notices: null, // Adjust as per your app logic
+                  notices: null, facultyName: '', // Adjust as per your app logic
                 ),
               ),
             );
@@ -298,9 +298,9 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           ),
           if (_isLoading)
             Center(
-              child: LoadingAnimationWidget.staggeredDotsWave(
-                color: Colors.blue,
-                size: screenWidth * 0.15,
+              child: LoadingAnimationWidget.threeArchedCircle(
+                color: Colors.black,
+                size: screenWidth * 0.12,
               ),
             ),
         ],

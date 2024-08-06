@@ -1,25 +1,54 @@
 import 'package:flutter/material.dart';
 
 class AcademicDetailsPage extends StatelessWidget {
-  final String studentName = 'Manav Lukar';
-  final String rollNo = '211291';
-  final String courseBranch = 'B.Ed. / Computer Science';
-  final String currentYear = '2nd Year';
+  final String username;
+  final List<int> subjectsData;
+  final Map<String, dynamic> studentDetails;
+  final String studentName;
+  final List<String> subjects;
+  final String rollNo;
 
-  final Map<String, String> academicDetails = {
-    'Mathematics': 'Dr. A. Kumar',
-    'Physics': 'Dr. S. Sharma',
-    'Chemistry': 'Dr. R. Mehta',
-    'Biology': 'Dr. P. Singh',
-    'English': 'Ms. N. Gupta',
-    'History': 'Mr. M. Verma',
-    'Geography': 'Ms. R. Joshi',
-  };
-
-  AcademicDetailsPage({super.key, required String username, required List subjectsData, required Map<String, dynamic> studentDetails, required studentName, required List subjects, required String rollNo});
+  AcademicDetailsPage({
+    Key? key,
+    required this.username,
+    required this.subjectsData,
+    required this.studentDetails,
+    required this.studentName,
+    required this.subjects,
+    required this.rollNo,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Extract details from the API response
+    final String name = studentDetails['fName'] ?? 'N/A';
+    final String rollNo = studentDetails['rollNo']?.toString() ?? 'N/A';
+    final String year = studentDetails['year']?.toString() ?? 'N/A';
+    final String section = studentDetails['section'] ?? 'N/A';
+
+    // Define a mapping from course ID to course name
+    final Map<int, String> courseMapping = {
+      101: 'Mathematics',
+      102: 'Physics',
+      103: 'Chemistry',
+      104: 'Biology',
+      105: 'English',
+      106: 'History',
+      107: 'Geography',
+      108: 'Computer Science',
+      109: 'Statistics',
+      110: 'Economics',
+      111: 'Philosophy',
+      112: 'Political Science',
+      // Add other mappings as necessary
+    };
+
+    // Get the courses from the response and map course IDs to course names
+    final List<int> courseIds = List<int>.from(studentDetails['courses'] ?? []);
+    final List<String> courses = courseIds.map((courseId) {
+      return courseMapping[courseId] ?? 'Unknown Course'; // Fallback if ID is not mapped
+    }).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Academic Details'),
@@ -59,28 +88,70 @@ class AcademicDetailsPage extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           children: [
             Card(
+              elevation: 5,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               color: Colors.white.withOpacity(0.9),
               margin: const EdgeInsets.symmetric(vertical: 8.0),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  'Name: $studentName\nRoll No.: $rollNo\nCourse/Branch: $courseBranch\nCurrent Year: $currentYear',
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Name: $name',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                        fontSize: 18,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Roll No.: $rollNo',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Year: $year',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Section: $section',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            ...academicDetails.entries.map((entry) {
+            ...courses.map((course) {
               return Card(
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 color: Colors.white.withOpacity(0.9),
                 margin: const EdgeInsets.symmetric(vertical: 8.0),
                 child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                   title: Text(
-                    entry.key,
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 16),
-                  ),
-                  subtitle: Text(
-                    entry.value,
-                    style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.black54, fontSize: 14),
+                    course,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                      fontSize: 16,
+                    ),
                   ),
                   leading: Icon(Icons.school, color: Colors.blue.shade300),
                 ),

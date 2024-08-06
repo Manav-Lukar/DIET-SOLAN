@@ -9,7 +9,7 @@ class FacultyHomePage extends StatefulWidget {
 
   const FacultyHomePage({
     Key? key,
-    required this.username, required notices, required email,
+    required this.username, required notices, required email, required String facultyName,
   }) : super(key: key);
 
   @override
