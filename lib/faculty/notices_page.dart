@@ -4,7 +4,7 @@ class NoticesPage extends StatefulWidget {
   const NoticesPage({
     Key? key,
     required this.onMessagePublished,
-    required this.notices,
+    required this.notices, required String token,
   }) : super(key: key);
 
   final Function(String) onMessagePublished;

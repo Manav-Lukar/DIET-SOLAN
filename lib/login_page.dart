@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'package:diet_portal/parent/parent_home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:diet_portal/student/student_home_page.dart';
 import 'package:diet_portal/faculty/faculty_home_page.dart';
+// Import parent home page here
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -18,6 +20,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   String _errorMessage = '';
   bool _isLoading = false;
   bool _isPasswordVisible = false;
+  String? _selectedRole;
 
   late AnimationController _controller;
   late Animation<double> _animation;
@@ -45,54 +48,103 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   }
 
   Future<void> _loginUser(BuildContext context) async {
+  if (_selectedRole == null) {
     setState(() {
-      _isLoading = true;
+      _errorMessage = 'Please select a role';
     });
+    return;
+  }
 
-    String usernameInput = _usernameController.text.trim();
-    late String apiUrl;
-    late String successRole;
-    late Map<String, dynamic> requestBody;
+  setState(() {
+    _isLoading = true;
+  });
 
-    // Determine API URL based on input (email or roll number)
-    if (usernameInput.contains('@')) {
-      apiUrl =
-          'https://student-attendance-system-ckb1.onrender.com/api/faculty/faculty-login';
-      successRole = 'Faculty';
-      requestBody = <String, dynamic>{
-        'email': usernameInput,
-      };
-    } else {
-      apiUrl =
-          'https://student-attendance-system-ckb1.onrender.com/api/student/student-login';
-      successRole = 'Student';
-      requestBody = <String, dynamic>{
-        'enrollNo': int.tryParse(usernameInput) ?? 0,
-      };
-    }
+  String usernameInput = _usernameController.text.trim();
+  late String apiUrl;
+  late String successRole;
+  late Map<String, dynamic> requestBody;
 
-    requestBody.addAll({
-      'password': _passwordController.text.trim(),
-      'role': successRole,
+  // Determine API URL based on selected role
+  if (_selectedRole == 'Faculty') {
+    apiUrl =
+        'https://student-attendance-system-ckb1.onrender.com/api/faculty/faculty-login';
+    successRole = 'Faculty';
+    requestBody = <String, dynamic>{
+      'email': usernameInput,
+    };
+  } else if (_selectedRole == 'Student') {
+    apiUrl =
+        'https://student-attendance-system-ckb1.onrender.com/api/student/student-login';
+    successRole = 'Student';
+    requestBody = <String, dynamic>{
+      'enrollNo': int.tryParse(usernameInput) ?? 0,
+    };
+  } else if (_selectedRole == 'Parent') {
+    apiUrl =
+        'https://student-attendance-system-ckb1.onrender.com/api/parents/parent-login';
+    successRole = 'Parent';
+    requestBody = <String, dynamic>{
+      'enrollNo': int.tryParse(usernameInput) ?? 0,
+    };
+  } else {
+    setState(() {
+      _errorMessage = 'Invalid role selected';
     });
+    return;
+  }
 
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(requestBody),
-      );
+  requestBody.addAll({
+    'password': _passwordController.text.trim(),
+    'role': successRole,
+  });
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+  try {
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(requestBody),
+    );
 
-      final data = jsonDecode(response.body);
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
 
-      if (response.statusCode == 200) {
-        final detailsKey = '${successRole.toLowerCase()}Details';
+    final data = jsonDecode(response.body);
 
+    if (response.statusCode == 200) {
+      final detailsKey = '${successRole.toLowerCase()}Details';
+
+      if (successRole == 'Parent') {
+        if (data.containsKey('parentsDetails') &&
+            data['parentsDetails']['role'] == successRole) {
+          final userDetails = data['parentsDetails'];
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ParentHomePage(
+                username: _usernameController.text,
+                parentDetails: userDetails,
+                parentName: userDetails['parentName'] ?? '',
+                studentName: userDetails['studentName'] ?? '',
+                rollNo: userDetails['enrollNo']?.toString() ?? '',
+                year: '', // Adjust as needed
+                section: '', // Adjust as needed
+                motherName: userDetails['motherName'],
+                contactNumber: userDetails['contactNumber'],
+                fatherName: userDetails['fatherName'],
+                parentId: userDetails['parentId'],
+                enrollNo: userDetails['enrollNo'],
+              ),
+            ),
+          );
+        } else {
+          setState(() {
+            _errorMessage = 'Invalid role or data format';
+          });
+        }
+      } else {
         if (data.containsKey(detailsKey) &&
             data[detailsKey]['role'] == successRole) {
           final userDetails = data[detailsKey];
@@ -113,7 +165,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                 ),
               ),
             );
-          } else {
+          } else if (successRole == 'Faculty') {
             final name = userDetails['Name'] ?? 'Faculty'; // Handle null case
             Navigator.pushReplacement(
               context,
@@ -121,7 +173,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                 builder: (context) => FacultyHomePage(
                   username: name,
                   email: userDetails['email'] ?? '', // Handle null case
-                  notices: null, facultyName: '', // Adjust as per your app logic
+                  notices: null, facultyName: '', token: '', // Adjust as per your app logic
                 ),
               ),
             );
@@ -131,22 +183,24 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
             _errorMessage = 'Invalid role or data format';
           });
         }
-      } else {
-        setState(() {
-          _errorMessage = 'Invalid email or password';
-        });
       }
-    } catch (e) {
-      print('Error: $e');
+    } else {
       setState(() {
-        _errorMessage = 'Error: $e';
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
+        _errorMessage = 'Invalid email or password';
       });
     }
+  } catch (e) {
+    print('Error: $e');
+    setState(() {
+      _errorMessage = 'Error: $e';
+    });
+  } finally {
+    setState(() {
+      _isLoading = false;
+    });
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -266,6 +320,40 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                         ),
                       ),
                       SizedBox(height: screenHeight * 0.02),
+                      // Role Selection Checkboxes
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Checkbox(
+                            value: _selectedRole == 'Faculty',
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedRole = value! ? 'Faculty' : null;
+                              });
+                            },
+                          ),
+                          const Text('Faculty'),
+                          Checkbox(
+                            value: _selectedRole == 'Student',
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedRole = value! ? 'Student' : null;
+                              });
+                            },
+                          ),
+                          const Text('Student'),
+                          Checkbox(
+                            value: _selectedRole == 'Parent',
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedRole = value! ? 'Parent' : null;
+                              });
+                            },
+                          ),
+                          const Text('Parent'),
+                        ],
+                      ),
+                      SizedBox(height: screenHeight * 0.02),
                       ElevatedButton(
                         onPressed: () => _loginUser(context),
                         child: const Text('Login'),
@@ -288,7 +376,15 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       if (_errorMessage.isNotEmpty)
                         Text(
                           _errorMessage,
-                          style: TextStyle(color: Colors.red, fontSize: screenWidth * 0.04),
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: screenWidth * 0.04,
+                          ),
+                        ),
+                      if (_isLoading)
+                        LoadingAnimationWidget.staggeredDotsWave(
+                          color: Colors.blue,
+                          size: screenWidth * 0.1,
                         ),
                     ],
                   ),
@@ -296,13 +392,6 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
               ),
             ),
           ),
-          if (_isLoading)
-            Center(
-              child: LoadingAnimationWidget.threeArchedCircle(
-                color: Colors.black,
-                size: screenWidth * 0.12,
-              ),
-            ),
         ],
       ),
     );

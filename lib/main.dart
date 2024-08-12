@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         ),
         textTheme: GoogleFonts.latoTextTheme(),
       ),
-      home: const LoginPage(),
+      home: LoginPage(),
     );
   }
 }

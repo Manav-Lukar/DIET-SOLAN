@@ -17,14 +17,14 @@ class ParentHomePage extends StatelessWidget {
     required this.studentName,
     required this.rollNo,
     required this.year,
-    required this.section,
+    required this.section, required String username, required parentDetails, required contactNumber, required motherName, required fatherName, required parentId, required enrollNo,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 225, 244, 248),
+        backgroundColor: const Color.fromARGB(255, 225, 244, 248),
         title: Text(
           'Welcome, $parentName',
           style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
@@ -63,10 +63,78 @@ class ParentHomePage extends StatelessWidget {
                   mainAxisSpacing: 20.0,
                   crossAxisSpacing: 20.0,
                   children: [
-                    buildTile(context, 'Personal Info', Icons.person, Colors.blue),
-                    buildTile(context, 'Fee Details', Icons.account_balance, Colors.green),
-                    buildTile(context, 'Academic Details', Icons.school, Colors.orange),
-                    buildTile(context, 'Class Attendance', Icons.assignment, Colors.red),
+                    buildTile(
+                      context,
+                      'Personal Info',
+                      Icons.person,
+                      Colors.blue,
+                      () => _showPersonalInfoDialog(context),
+                    ),
+                    buildTile(
+                      context,
+                      'Fee Details',
+                      Icons.account_balance,
+                      Colors.green,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FeeDetailsPage(
+                            username: '',
+                            studentDetails: {
+                              'Name': studentName,
+                              'Roll No': rollNo,
+                            },
+                            studentName: studentName,
+                            rollNo: rollNo,
+                          ),
+                        ),
+                      ),
+                    ),
+                    buildTile(
+                      context,
+                      'Academic Details',
+                      Icons.school,
+                      Colors.orange,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AcademicDetailsPage(
+                            username: '',
+                            subjectsData: [], // Update as needed
+                            studentDetails: {
+                              'Name': studentName,
+                              'Roll No': rollNo,
+                            },
+                            studentName: studentName,
+                            subjects: [], // Update as needed
+                            rollNo: rollNo,
+                          ),
+                        ),
+                      ),
+                    ),
+                    buildTile(
+                      context,
+                      'Class Attendance',
+                      Icons.assignment,
+                      Colors.red,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ClassAttendancePage(
+                            enrollNo: rollNo,
+                            username: '',
+                            name: studentName,
+                            rollNo: rollNo,
+                            fineData: const {}, // Update as needed
+                            subjectsData: [], // Update as needed
+                            year: year,
+                            studentName: studentName,
+                            section: section,
+                            studentDetails: {},
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -79,7 +147,7 @@ class ParentHomePage extends StatelessWidget {
           _showPersonalInfoDialog(context);
         },
         backgroundColor: Colors.blue,
-        child: Icon(Icons.account_circle, color: Colors.white),
+        child: const Icon(Icons.account_circle, color: Colors.white),
         tooltip: 'View Personal Info',
       ),
     );
@@ -89,17 +157,22 @@ class ParentHomePage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return PersonalInfoDialog(
-          studentInfo: {
-            'Name': studentName,
-            'Roll No': rollNo,
-            'Year': year,
-            'Section': section,
-            'Student Name': studentName,
-            'Parent Name': parentName,
-          },
-          username: '',
-          facultyInfo: {}, role: '', info: {},
+        return AlertDialog(
+          title: const Text('Personal Information'),
+          content: PersonalInfoDialog(
+            studentInfo: {
+              'Name': studentName,
+              'Roll No': rollNo,
+              'Year': year,
+              'Section': section,
+              'Student Name': studentName,
+              'Parent Name': parentName,
+            },
+            username: '',
+            facultyInfo: {},
+            role: '',
+            info: {},
+          ),
         );
       },
     );
@@ -125,22 +198,16 @@ class ParentHomePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Recent Notices',
                   style: TextStyle(
                     color: Colors.black87,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.refresh, color: Colors.blue),
-                  onPressed: () {
-                    // Handle refresh button press
-                  },
                 ),
               ],
             ),
@@ -154,7 +221,7 @@ class ParentHomePage extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.notifications, size: 16, color: Colors.black54),
+                  const Icon(Icons.notifications, size: 16, color: Colors.black54),
                   const SizedBox(width: 8.0),
                   Expanded(
                     child: Text(
@@ -171,70 +238,12 @@ class ParentHomePage extends StatelessWidget {
     );
   }
 
-  Widget buildTile(BuildContext context, String title, IconData icon, Color color) {
+  Widget buildTile(BuildContext context, String title, IconData icon, Color color, VoidCallback onTap) {
     return GestureDetector(
-      onTap: () {
-        switch (title) {
-          case 'Personal Info':
-            _showPersonalInfoDialog(context);
-            break;
-          case 'Fee Details':
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => FeeDetailsPage(
-                  username: '',
-                  studentDetails: {
-                    'Name': studentName,
-                    'Roll No': rollNo,
-                  },
-                  studentName: studentName, rollNo: '',
-                ),
-              ),
-            );
-            break;
-          case 'Academic Details':
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AcademicDetailsPage(
-                  username: '',
-                  subjectsData: [], // Update as needed
-                  studentDetails: {
-                    'Name': studentName,
-                    'Roll No': rollNo,
-                  },
-                  studentName: studentName,
-                  subjects: [], rollNo: '', // Update as needed
-                ),
-              ),
-            );
-            break;
-          case 'Class Attendance':
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ClassAttendancePage(
-                  enrollNo: rollNo,
-                  username: '',
-                  name: studentName,
-                  rollNo: rollNo,
-                  fineData: const {}, // Update as needed
-                  subjectsData: [], // Update as needed
-                  year: year,
-                  studentName: studentName, section: '',
-                ),
-              ),
-            );
-            break;
-          default:
-            break;
-        }
-      },
+      onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: color,
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
@@ -244,21 +253,37 @@ class ParentHomePage extends StatelessWidget {
               offset: const Offset(0, 3),
             ),
           ],
+          color: Colors.white,
+          gradient: LinearGradient(
+            colors: [color.withOpacity(0.2), Colors.white],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.white, size: 40),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 40,
+                  color: color,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:diet_portal/faculty/ClassSchedulePage.dart';
 import 'package:diet_portal/faculty/notices_page.dart';
 import 'package:diet_portal/faculty/faculty_personal_info.dart';
 import 'package:diet_portal/faculty/faculty_attendance_page.dart';
+import 'package:diet_portal/faculty/courses_teaching_page.dart'; // Import the new page
 
 class FacultyHomePage extends StatefulWidget {
   final String username;
+  final String token;
 
   const FacultyHomePage({
     Key? key,
-    required this.username, required notices, required email, required String facultyName,
+    required this.username,
+    required this.token, required email, required notices, required String facultyName,
   }) : super(key: key);
 
   @override
@@ -99,7 +101,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
                   crossAxisSpacing: 20.0,
                   children: [
                     buildTile(context, 'Personal Info', Icons.person, Colors.blue),
-                    buildTile(context, 'Class Schedule', Icons.calendar_today, Colors.green),
+                    buildTile(context, 'Courses Teaching', Icons.book, Colors.green),
                     buildTile(context, 'Attendance Records', Icons.assignment, Colors.orange),
                     buildTile(context, 'Notices', Icons.notifications, Colors.red),
                   ],
@@ -211,11 +213,14 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
               },
             );
           }
-        } else if (title == 'Class Schedule') {
+        } else if (title == 'Courses Teaching') {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ClassSchedulePage(facultyName: widget.username),
+              builder: (context) => CoursesTeachingPage(
+                facultyName: widget.username,
+                token: widget.token, // Pass the token
+              ),
             ),
           );
         } else if (title == 'Attendance Records') {
@@ -229,6 +234,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
                   'Physics',
                   'Chemistry',
                 ],
+                token: widget.token, // Pass the token
               ),
             ),
           );
@@ -243,6 +249,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
                   });
                 },
                 notices: notices,
+                token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmYWN1bHR5SWQiOiI2NjhlNTBlYmMwNzQ4OGUyMjEwMmNkNTYiLCJlbWFpbCI6InNodWJoYW01ODE4QGdtYWlsLmNvbSIsInJvbGUiOiJGYWN1bHR5IiwiaWF0IjoxNzIzMzE1MTc1LCJleHAiOjE3MjM0MDE1NzV9.PJT9n35-TwLpi-SxqU36KxTENcMt7FWReHouFG-ItjI', // Pass the token
               ),
             ),
           );

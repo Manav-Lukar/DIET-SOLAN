@@ -8,7 +8,7 @@ class FacultyAttendancePage extends StatefulWidget {
   const FacultyAttendancePage({
     Key? key,
     required this.facultyName,
-    required this.subjects,
+    required this.subjects, required String token,
   }) : super(key: key);
 
   @override

@@ -142,7 +142,7 @@ class StudentHomePage extends StatelessWidget {
                             subjectsData: subjectsData,
                             year: studentDetails['year'].toString(),
                             studentName: studentDetails['fName'],
-                            section: studentDetails['section'] ?? '',
+                            section: studentDetails['section'] ?? '', studentDetails: {},
                           ),
                         ),
                       ),

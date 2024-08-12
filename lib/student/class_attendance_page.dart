@@ -20,7 +20,7 @@ class ClassAttendancePage extends StatefulWidget {
     required this.fineData,
     required this.subjectsData,
     required this.year,
-    required this.enrollNo, required studentName, required String section,
+    required this.enrollNo, required studentName, required String section, required Map<String, String> studentDetails,
   }) : super(key: key);
 
   @override
