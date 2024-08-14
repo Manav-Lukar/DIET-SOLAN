@@ -6,11 +6,11 @@ class PersonalInfoDialog extends StatelessWidget {
   final Map<String, String> facultyInfo; // Unused here but included as per original code
 
   const PersonalInfoDialog({
-    Key? key,
+    super.key,
     required this.studentInfo,
     required this.username,
-    required this.facultyInfo, required String role, required Map info,
-  }) : super(key: key);
+    required this.facultyInfo, required String role, required Map info, required Map<String, dynamic> parentsDetails,
+  });
 
   @override
   Widget build(BuildContext context) {

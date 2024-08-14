@@ -13,7 +13,7 @@ class ClassAttendancePage extends StatefulWidget {
   final String enrollNo;
 
   const ClassAttendancePage({
-    Key? key,
+    super.key,
     required this.username,
     required this.name,
     required this.rollNo,
@@ -21,7 +21,7 @@ class ClassAttendancePage extends StatefulWidget {
     required this.subjectsData,
     required this.year,
     required this.enrollNo, required studentName, required String section, required Map<String, String> studentDetails,
-  }) : super(key: key);
+  });
 
   @override
   _ClassAttendancePageState createState() => _ClassAttendancePageState();

@@ -9,10 +9,10 @@ class FacultyHomePage extends StatefulWidget {
   final String token;
 
   const FacultyHomePage({
-    Key? key,
+    super.key,
     required this.username,
-    required this.token, required email, required notices, required String facultyName,
-  }) : super(key: key);
+    required this.token, required email, required notices, required String facultyName, List? coursesTeaching,
+  });
 
   @override
   _FacultyHomePageState createState() => _FacultyHomePageState();
@@ -114,22 +114,20 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final response = await fetchFacultyInfo();
-          if (response != null) {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return FacultyInfoDialog(
-                  facultyInfo: response,
-                  studentInfo: const {},
-                  username: widget.username,
-                );
-              },
-            );
-          }
-        },
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return FacultyInfoDialog(
+                facultyInfo: response,
+                studentInfo: const {},
+                username: widget.username,
+              );
+            },
+          );
+                },
         backgroundColor: Colors.blue,
-        child: const Icon(Icons.account_circle, color: Colors.white),
         tooltip: 'View Personal Info',
+        child: const Icon(Icons.account_circle, color: Colors.white),
       ),
     );
   }
@@ -179,7 +177,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.notifications, size: 16, color: Colors.black54),
+                  const Icon(Icons.notifications, size: 16, color: Colors.black54),
                   const SizedBox(width: 8.0),
                   Expanded(
                     child: Text(
@@ -189,7 +187,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
                   ),
                 ],
               ),
-            )).toList(),
+            )),
           ],
         ),
       ),
@@ -201,19 +199,17 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
       onTap: () async {
         if (title == 'Personal Info') {
           final response = await fetchFacultyInfo();
-          if (response != null) {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return FacultyInfoDialog(
-                  facultyInfo: response,
-                  studentInfo: const {},
-                  username: widget.username,
-                );
-              },
-            );
-          }
-        } else if (title == 'Courses Teaching') {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return FacultyInfoDialog(
+                facultyInfo: response,
+                studentInfo: const {},
+                username: widget.username,
+              );
+            },
+          );
+                } else if (title == 'Courses Teaching') {
           Navigator.push(
             context,
             MaterialPageRoute(

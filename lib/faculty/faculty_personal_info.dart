@@ -6,11 +6,11 @@ class FacultyInfoDialog extends StatelessWidget {
   final String username;
 
   const FacultyInfoDialog({
-    Key? key,
+    super.key,
     required this.facultyInfo,
     required this.studentInfo,
     required this.username,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

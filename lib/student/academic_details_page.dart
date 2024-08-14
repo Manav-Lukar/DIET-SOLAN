@@ -8,15 +8,15 @@ class AcademicDetailsPage extends StatelessWidget {
   final List<String> subjects;
   final String rollNo;
 
-  AcademicDetailsPage({
-    Key? key,
+  const AcademicDetailsPage({
+    super.key,
     required this.username,
     required this.subjectsData,
     required this.studentDetails,
     required this.studentName,
     required this.subjects,
     required this.rollNo,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +54,7 @@ class AcademicDetailsPage extends StatelessWidget {
         title: const Text('Academic Details'),
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
@@ -67,7 +67,7 @@ class AcademicDetailsPage extends StatelessWidget {
                 color: Colors.black.withOpacity(0.3),
                 spreadRadius: 0,
                 blurRadius: 6,
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
               ),
             ],
           ),
@@ -107,7 +107,7 @@ class AcademicDetailsPage extends StatelessWidget {
                         fontSize: 18,
                       ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                       'Roll No.: $rollNo',
                       style: const TextStyle(
@@ -115,7 +115,7 @@ class AcademicDetailsPage extends StatelessWidget {
                         color: Colors.black54,
                       ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                       'Year: $year',
                       style: const TextStyle(
@@ -123,7 +123,7 @@ class AcademicDetailsPage extends StatelessWidget {
                         color: Colors.black54,
                       ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                       'Section: $section',
                       style: const TextStyle(
@@ -156,7 +156,7 @@ class AcademicDetailsPage extends StatelessWidget {
                   leading: Icon(Icons.school, color: Colors.blue.shade300),
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),

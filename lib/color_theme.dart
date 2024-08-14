@@ -15,10 +15,10 @@ class ColorTheme {
   static const Color infoColor = Colors.orange;
 
   // Background and card colors
-  static final Color pageBackgroundStart = Color(0xFFE0F7FA); // Light Cyan
-  static final Color pageBackgroundEnd = Color(0xFFB2EBF2); // Lighter Cyan
-  static final Color inputFieldBackground = Color(0xFFFFFFFF).withOpacity(0.2); // Light with opacity
-  static final Color cardBackground = Color(0xFFFFFFFF).withOpacity(0.6); // White with opacity
+  static const Color pageBackgroundStart = Color(0xFFE0F7FA); // Light Cyan
+  static const Color pageBackgroundEnd = Color(0xFFB2EBF2); // Lighter Cyan
+  static final Color inputFieldBackground = const Color(0xFFFFFFFF).withOpacity(0.2); // Light with opacity
+  static final Color cardBackground = const Color(0xFFFFFFFF).withOpacity(0.6); // White with opacity
 
   // Dropdown colors
   static const Color dropdownBackground = Color(0xFFFFFFFF); // White background

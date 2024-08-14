@@ -12,13 +12,13 @@ class ParentHomePage extends StatelessWidget {
   final String section;
 
   const ParentHomePage({
-    Key? key,
+    super.key,
     required this.parentName,
     required this.studentName,
     required this.rollNo,
     required this.year,
-    required this.section, required String username, required parentDetails, required contactNumber, required motherName, required fatherName, required parentId, required enrollNo,
-  }) : super(key: key);
+    required this.section, required String username, required parentDetails, required contactNumber, required motherName, required fatherName, required parentId, required enrollNo, required String parentContact, required String parentEmail, required String parentAddress,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -100,13 +100,13 @@ class ParentHomePage extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (context) => AcademicDetailsPage(
                             username: '',
-                            subjectsData: [], // Update as needed
+                            subjectsData: const [], // Update as needed
                             studentDetails: {
                               'Name': studentName,
                               'Roll No': rollNo,
                             },
                             studentName: studentName,
-                            subjects: [], // Update as needed
+                            subjects: const [], // Update as needed
                             rollNo: rollNo,
                           ),
                         ),
@@ -126,11 +126,11 @@ class ParentHomePage extends StatelessWidget {
                             name: studentName,
                             rollNo: rollNo,
                             fineData: const {}, // Update as needed
-                            subjectsData: [], // Update as needed
+                            subjectsData: const [], // Update as needed
                             year: year,
                             studentName: studentName,
                             section: section,
-                            studentDetails: {},
+                            studentDetails: const {},
                           ),
                         ),
                       ),
@@ -147,8 +147,8 @@ class ParentHomePage extends StatelessWidget {
           _showPersonalInfoDialog(context);
         },
         backgroundColor: Colors.blue,
-        child: const Icon(Icons.account_circle, color: Colors.white),
         tooltip: 'View Personal Info',
+        child: const Icon(Icons.account_circle, color: Colors.white),
       ),
     );
   }
@@ -169,9 +169,9 @@ class ParentHomePage extends StatelessWidget {
               'Parent Name': parentName,
             },
             username: '',
-            facultyInfo: {},
+            facultyInfo: const {},
             role: '',
-            info: {},
+            info: const {}, parentsDetails: {},
           ),
         );
       },
@@ -231,7 +231,7 @@ class ParentHomePage extends StatelessWidget {
                   ),
                 ],
               ),
-            )).toList(),
+            )),
           ],
         ),
       ),

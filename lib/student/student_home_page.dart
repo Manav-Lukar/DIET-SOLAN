@@ -11,12 +11,12 @@ class StudentHomePage extends StatelessWidget {
   final Map<String, dynamic> studentDetails;
 
   const StudentHomePage({
-    Key? key,
+    super.key,
     required this.username,
     required this.notices,
     required this.subjectsData,
-    required this.studentDetails, required String rollNo, required String studentName, required String year, required section,
-  }) : super(key: key);
+    required this.studentDetails, required String rollNo, required String studentName, required String year, required section, String? token, List? courses,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -83,9 +83,9 @@ class StudentHomePage extends StatelessWidget {
                               'Mother Name': studentDetails['motherName'] ?? '',
                             },
                             username: username,
-                            facultyInfo: {},
+                            facultyInfo: const {},
                             role: '',
-                            info: {},
+                            info: const {}, parentsDetails: {},
                           );
                         },
                       ),
@@ -120,7 +120,7 @@ class StudentHomePage extends StatelessWidget {
                             subjectsData: _convertToIntList(subjectsData), // Convert to List<int>
                             studentDetails: studentDetails,
                             studentName: studentDetails['fName'],
-                            rollNo: studentDetails['rollNo'].toString(), subjects: [],
+                            rollNo: studentDetails['rollNo'].toString(), subjects: const [],
                           ),
                         ),
                       ),
@@ -142,7 +142,7 @@ class StudentHomePage extends StatelessWidget {
                             subjectsData: subjectsData,
                             year: studentDetails['year'].toString(),
                             studentName: studentDetails['fName'],
-                            section: studentDetails['section'] ?? '', studentDetails: {},
+                            section: studentDetails['section'] ?? '', studentDetails: const {},
                           ),
                         ),
                       ),
@@ -213,7 +213,7 @@ class StudentHomePage extends StatelessWidget {
                   ),
                 ],
               ),
-            )).toList(),
+            )),
           ],
         ),
       ),

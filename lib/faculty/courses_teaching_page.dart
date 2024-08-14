@@ -7,10 +7,10 @@ class CoursesTeachingPage extends StatefulWidget {
   final String token;
 
   const CoursesTeachingPage({
-    Key? key,
+    super.key,
     required this.facultyName,
     required this.token,
-  }) : super(key: key);
+  });
 
   @override
   _CoursesTeachingPageState createState() => _CoursesTeachingPageState();
@@ -87,7 +87,7 @@ class _CoursesTeachingPageState extends State<CoursesTeachingPage> {
           : errorMessage.isNotEmpty
               ? Center(child: Text(errorMessage))
               : coursesTeaching.isEmpty
-                  ? Center(child: Text('No courses available.'))
+                  ? const Center(child: Text('No courses available.'))
                   : ListView.builder(
                       itemCount: coursesTeaching.length,
                       itemBuilder: (context, index) {

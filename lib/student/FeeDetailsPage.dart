@@ -112,7 +112,6 @@ class _FeeDetailsPageState extends State<FeeDetailsPage>
               },
             ),
             ElevatedButton(
-              child: Text('Paid'),
               onPressed: () {
                 _animationController?.forward().then((_) {
                   Navigator.of(context).pop();
@@ -123,6 +122,7 @@ class _FeeDetailsPageState extends State<FeeDetailsPage>
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.green,
               ),
+              child: const Text('Paid'),
             ),
           ],
         );
@@ -147,7 +147,7 @@ class _FeeDetailsPageState extends State<FeeDetailsPage>
                   width: 120,
                   height: 120,
                   decoration:
-                      BoxDecoration(shape: BoxShape.circle, color: Colors.blue),
+                      const BoxDecoration(shape: BoxShape.circle, color: Colors.blue),
                 ),
                 // Checkmark icon with animation
                 ScaleTransition(
@@ -191,7 +191,7 @@ class _FeeDetailsPageState extends State<FeeDetailsPage>
           'Fee Details',
         ),
         flexibleSpace: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -204,7 +204,7 @@ class _FeeDetailsPageState extends State<FeeDetailsPage>
         ),
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,

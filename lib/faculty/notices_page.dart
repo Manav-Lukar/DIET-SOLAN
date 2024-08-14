@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 class NoticesPage extends StatefulWidget {
   const NoticesPage({
-    Key? key,
+    super.key,
     required this.onMessagePublished,
     required this.notices, required String token,
-  }) : super(key: key);
+  });
 
   final Function(String) onMessagePublished;
   final List<String> notices;
@@ -52,7 +52,7 @@ class _NoticesPageState extends State<NoticesPage> {
       appBar: AppBar(
         title: const Text('Notices'),
         flexibleSpace: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -96,7 +96,7 @@ class _NoticesPageState extends State<NoticesPage> {
               maxLength: 100,
               decoration: InputDecoration(
                 labelText: 'Enter Message (Max 100 characters)',
-                labelStyle: TextStyle(
+                labelStyle: const TextStyle(
                   color: Colors.black,
                 ),
                 border: OutlineInputBorder(
@@ -107,7 +107,7 @@ class _NoticesPageState extends State<NoticesPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(
+                  borderSide: const BorderSide(
                     color: Colors.black,
                   ),
                 ),

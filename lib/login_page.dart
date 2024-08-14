@@ -1,11 +1,11 @@
 import 'dart:convert';
-import 'package:diet_portal/parent/parent_home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:diet_portal/parent/parent_home_page.dart';
 import 'package:diet_portal/student/student_home_page.dart';
 import 'package:diet_portal/faculty/faculty_home_page.dart';
-// Import parent home page here
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -14,7 +14,8 @@ class LoginPage extends StatefulWidget {
   _LoginPageState createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
+class _LoginPageState extends State<LoginPage>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String _errorMessage = '';
@@ -30,7 +31,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     super.initState();
     _controller = AnimationController(
       duration: const Duration(seconds: 2),
-      vsync: this,
+      vsync: this, // Corrected parameter name
     );
     _animation = CurvedAnimation(
       parent: _controller,
@@ -47,7 +48,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     super.dispose();
   }
 
-  Future<void> _loginUser(BuildContext context) async {
+Future<void> _loginUser(BuildContext context) async {
   if (_selectedRole == null) {
     setState(() {
       _errorMessage = 'Please select a role';
@@ -69,21 +70,21 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     apiUrl =
         'https://student-attendance-system-ckb1.onrender.com/api/faculty/faculty-login';
     successRole = 'Faculty';
-    requestBody = <String, dynamic>{
+    requestBody = {
       'email': usernameInput,
     };
   } else if (_selectedRole == 'Student') {
     apiUrl =
         'https://student-attendance-system-ckb1.onrender.com/api/student/student-login';
     successRole = 'Student';
-    requestBody = <String, dynamic>{
+    requestBody = {
       'enrollNo': int.tryParse(usernameInput) ?? 0,
     };
   } else if (_selectedRole == 'Parent') {
     apiUrl =
         'https://student-attendance-system-ckb1.onrender.com/api/parents/parent-login';
     successRole = 'Parent';
-    requestBody = <String, dynamic>{
+    requestBody = {
       'enrollNo': int.tryParse(usernameInput) ?? 0,
     };
   } else {
@@ -93,10 +94,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     return;
   }
 
-  requestBody.addAll({
-    'password': _passwordController.text.trim(),
-    'role': successRole,
-  });
+  requestBody['password'] = _passwordController.text.trim();
+  requestBody['role'] = successRole;
 
   try {
     final response = await http.post(
@@ -113,43 +112,65 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     final data = jsonDecode(response.body);
 
     if (response.statusCode == 200) {
-      final detailsKey = '${successRole.toLowerCase()}Details';
+      final detailsKey = _selectedRole == 'Parent'
+          ? 'parentsDetails'
+          : '${successRole.toLowerCase()}Details';
+      String? token;
+      List<dynamic>? courses;
+      List<dynamic>? coursesTeaching;
 
-      if (successRole == 'Parent') {
-        if (data.containsKey('parentsDetails') &&
-            data['parentsDetails']['role'] == successRole) {
-          final userDetails = data['parentsDetails'];
+      if (data.containsKey(detailsKey)) {
+        final userDetails = data[detailsKey];
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ParentHomePage(
-                username: _usernameController.text,
-                parentDetails: userDetails,
-                parentName: userDetails['parentName'] ?? '',
-                studentName: userDetails['studentName'] ?? '',
-                rollNo: userDetails['enrollNo']?.toString() ?? '',
-                year: '', // Adjust as needed
-                section: '', // Adjust as needed
-                motherName: userDetails['motherName'],
-                contactNumber: userDetails['contactNumber'],
-                fatherName: userDetails['fatherName'],
-                parentId: userDetails['parentId'],
-                enrollNo: userDetails['enrollNo'],
+        if (successRole == 'Parent') {
+          if (userDetails['role'] == successRole) {
+            token = userDetails['token'];
+            if (token != null) {
+              // print('Token from response: $token'); // Print the token
+
+              // Save token in SharedPreferences
+              await _saveToken(token);
+            }
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ParentHomePage(
+                  username: _usernameController.text,
+                  parentDetails: userDetails,
+                  parentName: userDetails['fatherName'] ?? '',
+                  studentName: userDetails['studentName'] ?? '',
+                  rollNo: userDetails['enrollNo']?.toString() ?? '',
+                  year: '', // Adjust as needed
+                  section: '', // Adjust as needed
+                  motherName: userDetails['motherName'] ?? '',
+                  contactNumber: userDetails['contactNumber']?.toString() ?? '',
+                  fatherName: userDetails['fatherName'] ?? '',
+                  parentId: '', // Adjust as needed
+                  enrollNo: userDetails['enrollNo'] ?? 0, parentContact: '', parentEmail: '', parentAddress: '',
+                ),
               ),
-            ),
-          );
-        } else {
-          setState(() {
-            _errorMessage = 'Invalid role or data format';
-          });
-        }
-      } else {
-        if (data.containsKey(detailsKey) &&
-            data[detailsKey]['role'] == successRole) {
-          final userDetails = data[detailsKey];
+            );
+          } else {
+            setState(() {
+              _errorMessage = 'Invalid role or data format';
+            });
+          }
+        } else if (successRole == 'Student') {
+          if (userDetails['role'] == successRole) {
+            token = userDetails['token'];
+            courses = userDetails['courses'] ?? [];
+            if (token != null) {
+              // print('Token from response: $token'); // Print the token
+            }
+            if (courses != null) {
+              // print('Courses from response: $courses'); // Print the courses
 
-          if (successRole == 'Student') {
+              // Save token and courses in SharedPreferences
+              await _saveToken(token!);
+              await _saveCourses(courses);
+            }
+
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
@@ -157,7 +178,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                   username: _usernameController.text,
                   notices: const [], // Adjust as per your app logic
                   subjectsData: const [], // Adjust as per your app logic
-                  studentDetails: userDetails, // Pass the entire studentDetails map
+                  studentDetails: userDetails,
                   studentName: '${userDetails['fName']} ${userDetails['lName']}',
                   rollNo: userDetails['rollNo'].toString(),
                   year: userDetails['year'].toString(),
@@ -165,24 +186,49 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                 ),
               ),
             );
-          } else if (successRole == 'Faculty') {
-            final name = userDetails['Name'] ?? 'Faculty'; // Handle null case
+          } else {
+            setState(() {
+              _errorMessage = 'Invalid role or data format';
+            });
+          }
+        } else if (successRole == 'Faculty') {
+          if (userDetails['role'] == successRole) {
+            token = userDetails['token'];
+            coursesTeaching = userDetails['coursesTeaching'] ?? [];
+            if (token != null) {
+              // print('Token from response: $token'); // Print the token
+            }
+            if (coursesTeaching != null) {
+              print('Courses Teaching from response: $coursesTeaching'); // Print the coursesTeaching
+
+              // Save token and coursesTeaching in SharedPreferences
+              await _saveToken(token!);
+              await _saveCoursesTeaching(coursesTeaching);
+            }
+
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) => FacultyHomePage(
-                  username: name,
-                  email: userDetails['email'] ?? '', // Handle null case
-                  notices: null, facultyName: '', token: '', // Adjust as per your app logic
+                  username: userDetails['Name'] ?? 'Faculty',
+                  email: userDetails['email'] ?? '',
+                  notices: null, // Adjust as per your app logic
+                  facultyName: '', // Adjust as needed
+                  token: token ?? '', // Pass the token here
+                  coursesTeaching: coursesTeaching,
                 ),
               ),
             );
+          } else {
+            setState(() {
+              _errorMessage = 'Invalid role or data format';
+            });
           }
-        } else {
-          setState(() {
-            _errorMessage = 'Invalid role or data format';
-          });
         }
+      } else {
+        setState(() {
+          _errorMessage = 'Invalid role or data format';
+        });
       }
     } else {
       setState(() {
@@ -199,6 +245,25 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       _isLoading = false;
     });
   }
+}
+
+// Add method to save coursesTeaching in SharedPreferences
+Future<void> _saveCoursesTeaching(List<dynamic> coursesTeaching) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('coursesTeaching', jsonEncode(coursesTeaching));
+}
+
+Future<void> _saveToken(String token) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('token', token);
+  print('Token saved: $token'); // Print the token to the debug console
+}
+
+Future<void> _saveCourses(List<dynamic> courses) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setStringList(
+      'courses', courses.map((id) => id.toString()).toList());
+  print('Course IDs saved: $courses'); // Print the course IDs to the debug console
 }
 
 

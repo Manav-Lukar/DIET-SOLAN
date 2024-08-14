@@ -6,10 +6,10 @@ class FacultyAttendancePage extends StatefulWidget {
   final List<String> subjects;
 
   const FacultyAttendancePage({
-    Key? key,
+    super.key,
     required this.facultyName,
     required this.subjects, required String token,
-  }) : super(key: key);
+  });
 
   @override
   _FacultyAttendancePageState createState() => _FacultyAttendancePageState();
@@ -103,7 +103,7 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
             children: [
               Text(
                 'Faculty: ${widget.facultyName}',
-                style: theme.textTheme.headline6?.copyWith(
+                style: theme.textTheme.titleLarge?.copyWith(
                   color: Colors.black87,
                   fontWeight: FontWeight.bold,
                 ),
@@ -114,7 +114,7 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
                 children: [
                   Text(
                     'Select Date:',
-                    style: theme.textTheme.subtitle1?.copyWith(
+                    style: theme.textTheme.titleMedium?.copyWith(
                       color: Colors.black54,
                       fontWeight: FontWeight.w500,
                     ),
@@ -133,10 +133,6 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
                         });
                       }
                     },
-                    child: Text(
-                      selectedDate,
-                      style: theme.textTheme.button?.copyWith(color: Colors.white),
-                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: theme.primaryColor,
                       shape: RoundedRectangleBorder(
@@ -144,6 +140,10 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
                       ),
                       elevation: 5,
                       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+                    ),
+                    child: Text(
+                      selectedDate,
+                      style: theme.textTheme.labelLarge?.copyWith(color: Colors.white),
                     ),
                   ),
                 ],
@@ -168,7 +168,7 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
                           children: [
                             Text(
                               studentName,
-                              style: theme.textTheme.headline6?.copyWith(
+                              style: theme.textTheme.titleLarge?.copyWith(
                                 color: Colors.black87,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -182,7 +182,7 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
                                   children: [
                                     Text(
                                       subject,
-                                      style: theme.textTheme.subtitle1?.copyWith(
+                                      style: theme.textTheme.titleMedium?.copyWith(
                                         color: Colors.black54,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -231,7 +231,7 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
                                   ],
                                 ),
                               );
-                            }).toList(),
+                            }),
                           ],
                         ),
                       ),
