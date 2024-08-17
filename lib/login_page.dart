@@ -14,8 +14,7 @@ class LoginPage extends StatefulWidget {
   _LoginPageState createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage>
-    with SingleTickerProviderStateMixin {
+class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String _errorMessage = '';
@@ -48,89 +47,89 @@ class _LoginPageState extends State<LoginPage>
     super.dispose();
   }
 
-Future<void> _loginUser(BuildContext context) async {
-  if (_selectedRole == null) {
+  Future<void> _loginUser(BuildContext context) async {
+    if (_selectedRole == null) {
+      setState(() {
+        _errorMessage = 'Please select a role';
+      });
+      return;
+    }
+
     setState(() {
-      _errorMessage = 'Please select a role';
+      _isLoading = true;
     });
-    return;
-  }
 
-  setState(() {
-    _isLoading = true;
-  });
+    String usernameInput = _usernameController.text.trim();
+    late String apiUrl;
+    late String successRole;
+    late Map<String, dynamic> requestBody;
 
-  String usernameInput = _usernameController.text.trim();
-  late String apiUrl;
-  late String successRole;
-  late Map<String, dynamic> requestBody;
+    // Determine API URL based on selected role
+    if (_selectedRole == 'Faculty') {
+      apiUrl =
+          'https://student-attendance-system-ckb1.onrender.com/api/faculty/faculty-login';
+      successRole = 'Faculty';
+      requestBody = {
+        'email': usernameInput,
+      };
+    } else if (_selectedRole == 'Student') {
+      apiUrl =
+          'https://student-attendance-system-ckb1.onrender.com/api/student/student-login';
+      successRole = 'Student';
+      requestBody = {
+        'enrollNo': int.tryParse(usernameInput) ?? 0,
+      };
+    } else if (_selectedRole == 'Parent') {
+      apiUrl =
+          'https://student-attendance-system-ckb1.onrender.com/api/parents/parent-login';
+      successRole = 'Parent';
+      requestBody = {
+        'enrollNo': int.tryParse(usernameInput) ?? 0,
+      };
+    } else {
+      setState(() {
+        _errorMessage = 'Invalid role selected';
+      });
+      return;
+    }
 
-  // Determine API URL based on selected role
-  if (_selectedRole == 'Faculty') {
-    apiUrl =
-        'https://student-attendance-system-ckb1.onrender.com/api/faculty/faculty-login';
-    successRole = 'Faculty';
-    requestBody = {
-      'email': usernameInput,
-    };
-  } else if (_selectedRole == 'Student') {
-    apiUrl =
-        'https://student-attendance-system-ckb1.onrender.com/api/student/student-login';
-    successRole = 'Student';
-    requestBody = {
-      'enrollNo': int.tryParse(usernameInput) ?? 0,
-    };
-  } else if (_selectedRole == 'Parent') {
-    apiUrl =
-        'https://student-attendance-system-ckb1.onrender.com/api/parents/parent-login';
-    successRole = 'Parent';
-    requestBody = {
-      'enrollNo': int.tryParse(usernameInput) ?? 0,
-    };
-  } else {
-    setState(() {
-      _errorMessage = 'Invalid role selected';
-    });
-    return;
-  }
+    requestBody['password'] = _passwordController.text.trim();
+    requestBody['role'] = successRole;
 
-  requestBody['password'] = _passwordController.text.trim();
-  requestBody['role'] = successRole;
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(requestBody),
+      );
 
-  try {
-    final response = await http.post(
-      Uri.parse(apiUrl),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(requestBody),
-    );
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
+      final data = jsonDecode(response.body);
 
-    final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        final detailsKey = _selectedRole == 'Parent'
+            ? 'parentsDetails'
+            : '${successRole.toLowerCase()}Details';
+        String? token;
+        List<dynamic>? courses;
+        List<dynamic>? coursesTeaching;
 
-    if (response.statusCode == 200) {
-      final detailsKey = _selectedRole == 'Parent'
-          ? 'parentsDetails'
-          : '${successRole.toLowerCase()}Details';
-      String? token;
-      List<dynamic>? courses;
-      List<dynamic>? coursesTeaching;
+        if (data.containsKey(detailsKey)) {
+          final userDetails = data[detailsKey];
 
-      if (data.containsKey(detailsKey)) {
-        final userDetails = data[detailsKey];
+          if (successRole == 'Parent') {
+            if (userDetails['role'] == successRole) {
+              token = userDetails['token'];
+              if (token != null) {
+                // print('Token from response: $token'); // Print the token
 
-        if (successRole == 'Parent') {
-          if (userDetails['role'] == successRole) {
-            token = userDetails['token'];
-            if (token != null) {
-              // print('Token from response: $token'); // Print the token
-
-              // Save token in SharedPreferences
-              await _saveToken(token);
-            }
+                // Save token in SharedPreferences
+                await _saveToken(token);
+              }
 
             Navigator.pushReplacement(
               context,
