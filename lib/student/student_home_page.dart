@@ -7,7 +7,7 @@ import 'package:diet_portal/student/student_personal_info.dart';
 class StudentHomePage extends StatelessWidget {
   final String username;
   final List<String> notices;
-  final List<dynamic> subjectsData; // This needs to be converted to List<int>
+  final List<int> subjectsData; // Converted to List<int>
   final Map<String, dynamic> studentDetails;
 
   const StudentHomePage({
@@ -15,7 +15,7 @@ class StudentHomePage extends StatelessWidget {
     required this.username,
     required this.notices,
     required this.subjectsData,
-    required this.studentDetails, required String rollNo, required String studentName, required String year, required section, String? token, List? courses,
+    required this.studentDetails, required String studentName, required String rollNo, required section, required String token, required String year,
   });
 
   @override
@@ -29,7 +29,7 @@ class StudentHomePage extends StatelessWidget {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
+                    onPressed: () {
             Navigator.pushReplacementNamed(context, '/');
           },
         ),
@@ -85,7 +85,8 @@ class StudentHomePage extends StatelessWidget {
                             username: username,
                             facultyInfo: const {},
                             role: '',
-                            info: const {}, parentsDetails: {},
+                            info: const {}, 
+                            parentsDetails: const {},
                           );
                         },
                       ),
@@ -117,10 +118,12 @@ class StudentHomePage extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (context) => AcademicDetailsPage(
                             username: username,
-                            subjectsData: _convertToIntList(subjectsData), // Convert to List<int>
+                            subjectsData: subjectsData, // Passed as List<int>
                             studentDetails: studentDetails,
                             studentName: studentDetails['fName'],
-                            rollNo: studentDetails['rollNo'].toString(), subjects: const [],
+                            rollNo: studentDetails['rollNo'].toString(),
+                            subjects: const [], 
+                            token: '', // Add your token here
                           ),
                         ),
                       ),
@@ -142,7 +145,8 @@ class StudentHomePage extends StatelessWidget {
                             subjectsData: subjectsData,
                             year: studentDetails['year'].toString(),
                             studentName: studentDetails['fName'],
-                            section: studentDetails['section'] ?? '', studentDetails: const {},
+                            section: studentDetails['section'] ?? '',
+                            studentDetails: const {},
                           ),
                         ),
                       ),
@@ -269,10 +273,5 @@ class StudentHomePage extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  // Helper method to convert List<dynamic> to List<int>
-  List<int> _convertToIntList(List<dynamic> data) {
-    return data.map((item) => item is int ? item : int.tryParse(item.toString()) ?? 0).toList();
   }
 }

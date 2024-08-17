@@ -215,7 +215,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
             MaterialPageRoute(
               builder: (context) => CoursesTeachingPage(
                 facultyName: widget.username,
-                token: widget.token, // Pass the token
+                token: widget.token, facultyDetails: null, // Pass the token
               ),
             ),
           );
