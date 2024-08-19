@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:diet_portal/admin/admin_home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -46,127 +47,108 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     _passwordController.dispose();
     super.dispose();
   }
-
-  Future<void> _loginUser(BuildContext context) async {
-    if (_selectedRole == null) {
-      setState(() {
-        _errorMessage = 'Please select a role';
-      });
-      return;
-    }
-
+Future<void> _loginUser(BuildContext context) async {
+  if (_selectedRole == null) {
     setState(() {
-      _isLoading = true;
+      _errorMessage = 'Please select a role';
     });
+    return;
+  }
 
-    String usernameInput = _usernameController.text.trim();
-    late String apiUrl;
-    late String successRole;
-    late Map<String, dynamic> requestBody;
+  setState(() {
+    _isLoading = true;
+  });
 
-    // Determine API URL based on selected role
-    if (_selectedRole == 'Faculty') {
-      apiUrl =
-          'https://student-attendance-system-ckb1.onrender.com/api/faculty/faculty-login';
-      successRole = 'Faculty';
-      requestBody = {
-        'email': usernameInput,
-      };
-    } else if (_selectedRole == 'Student') {
-      apiUrl =
-          'https://student-attendance-system-ckb1.onrender.com/api/student/student-login';
-      successRole = 'Student';
-      requestBody = {
-        'enrollNo': int.tryParse(usernameInput) ?? 0,
-      };
-    } else if (_selectedRole == 'Parent') {
-      apiUrl =
-          'https://student-attendance-system-ckb1.onrender.com/api/parents/parent-login';
-      successRole = 'Parent';
-      requestBody = {
-        'enrollNo': int.tryParse(usernameInput) ?? 0,
-      };
-    } else {
-      setState(() {
-        _errorMessage = 'Invalid role selected';
-      });
-      return;
-    }
+  String usernameInput = _usernameController.text.trim();
+  late String apiUrl;
+  late String successRole;
+  late Map<String, dynamic> requestBody;
 
-    requestBody['password'] = _passwordController.text.trim();
-    requestBody['role'] = successRole;
+  // Determine API URL based on selected role
+  if (_selectedRole == 'Faculty') {
+    apiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/faculty/faculty-login';
+    successRole = 'Faculty';
+    requestBody = {
+      'email': usernameInput,
+    };
+  } else if (_selectedRole == 'Admin') {
+    apiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/faculty/faculty-login'; // Correct API endpoint
+    successRole = 'Admin';
+    requestBody = {
+      'email': usernameInput,
+    };
+  } else if (_selectedRole == 'Student') {
+    apiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/student/student-login';
+    successRole = 'Student';
+    requestBody = {
+      'enrollNo': int.tryParse(usernameInput) ?? 0,
+    };
+  } else if (_selectedRole == 'Parent') {
+    apiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/parents/parent-login';
+    successRole = 'Parent';
+    requestBody = {
+      'enrollNo': int.tryParse(usernameInput) ?? 0,
+    };
+  } else {
+    setState(() {
+      _errorMessage = 'Invalid role selected';
+    });
+    return;
+  }
 
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(requestBody),
-      );
+  requestBody['password'] = _passwordController.text.trim();
+  requestBody['role'] = successRole;
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+  try {
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(requestBody),
+    );
 
-      final data = jsonDecode(response.body);
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
 
-      if (response.statusCode == 200) {
-        final detailsKey = _selectedRole == 'Parent'
-            ? 'parentsDetails'
-            : '${successRole.toLowerCase()}Details';
-        String? token;
-        List<dynamic>? courses;
-        List<dynamic>? coursesTeaching;
+    final data = jsonDecode(response.body);
 
-        if (data.containsKey(detailsKey)) {
-          final userDetails = data[detailsKey];
+    if (response.statusCode == 200) {
+      final detailsKey = _selectedRole == 'Parent'
+          ? 'parentsDetails'
+          : '${successRole.toLowerCase()}Details';
+      String? token;
+      List<dynamic>? courses;
+      List<dynamic>? coursesTeaching;
+      List<dynamic>? classesTeaching;
 
-          if (successRole == 'Parent') {
-            if (userDetails['role'] == successRole) {
-              token = userDetails['token'];
-              if (token != null) {
-                // print('Token from response: $token'); // Print the token
+      if (data.containsKey('facultyDetails')) {
+        final userDetails = data['facultyDetails'];
 
-                // Save token in SharedPreferences
-                await _saveToken(token);
-              }
+        if (userDetails['role'] == successRole) {
+          token = userDetails['token'];
+          if (token != null) {
+            // Print the token to the debug console
+            print('Token from response: $token');
+            await _saveToken(token);
+          }
+
+          if (successRole == 'Admin') {
+            coursesTeaching = userDetails['coursesTeaching'] ?? [];
+            classesTeaching = userDetails['classesTeaching'] ?? [];
 
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => ParentHomePage(
-                  username: _usernameController.text,
-                  parentDetails: userDetails,
-                  parentName: userDetails['fatherName'] ?? '',
-                  studentName: userDetails['studentName'] ?? '',
-                  rollNo: userDetails['enrollNo']?.toString() ?? '',
-                  year: '', // Adjust as needed
-                  section: '', // Adjust as needed
-                  motherName: userDetails['motherName'] ?? '',
-                  contactNumber: userDetails['contactNumber']?.toString() ?? '',
-                  fatherName: userDetails['fatherName'] ?? '',
-                  parentId: '', // Adjust as needed
-                  enrollNo: userDetails['enrollNo'] ?? 0, parentContact: '', parentEmail: '', parentAddress: '',
+                builder: (context) => AdminHomePage(
+                  // Pass the necessary details if required
                 ),
               ),
             );
-          } else {
-            setState(() {
-              _errorMessage = 'Invalid role or data format';
-            });
-          }
-        } else if (successRole == 'Student') {
-          if (userDetails['role'] == successRole) {
-            token = userDetails['token'];
+          } else if (successRole == 'Student') {
             courses = userDetails['courses'] ?? [];
-            if (token != null) {
-              // print('Token from response: $token'); // Print the token
-            }
             if (courses != null) {
-              // print('Courses from response: $courses'); // Print the courses
-
-              // Save token and courses in SharedPreferences
-              await _saveToken(token!);
+              print('Courses from response: $courses');
               await _saveCourses(courses);
             }
 
@@ -181,27 +163,15 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                   studentName: '${userDetails['fName']} ${userDetails['lName']}',
                   rollNo: userDetails['rollNo'].toString(),
                   year: userDetails['year'].toString(),
-                  section: userDetails['section'], token: '',
+                  section: userDetails['section'],
+                  token: token ?? '',
                 ),
               ),
             );
-          } else {
-            setState(() {
-              _errorMessage = 'Invalid role or data format';
-            });
-          }
-        } else if (successRole == 'Faculty') {
-          if (userDetails['role'] == successRole) {
-            token = userDetails['token'];
-            coursesTeaching = userDetails['coursesTeaching'] ?? [];
-            if (token != null) {
-              // print('Token from response: $token'); // Print the token
-            }
+          } else if (successRole == 'Faculty') {
+            List<dynamic>? coursesTeaching = userDetails['coursesTeaching'] ?? [];
             if (coursesTeaching != null) {
-              print('Courses Teaching from response: $coursesTeaching'); // Print the coursesTeaching
-
-              // Save token and coursesTeaching in SharedPreferences
-              await _saveToken(token!);
+              print('Courses Teaching from response: $coursesTeaching');
               await _saveCoursesTeaching(coursesTeaching);
             }
 
@@ -218,11 +188,11 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                 ),
               ),
             );
-          } else {
-            setState(() {
-              _errorMessage = 'Invalid role or data format';
-            });
           }
+        } else {
+          setState(() {
+            _errorMessage = 'Invalid role or data format';
+          });
         }
       } else {
         setState(() {
@@ -261,12 +231,14 @@ Future<void> _saveToken(String token) async {
 Future<void> _saveCourses(List<dynamic> courses) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setStringList(
-      'courses', courses.map((id) => id.toString()).toList());
+    'courses', 
+    courses.map((id) => id.toString()).toList()
+  );
   print('Course IDs saved: $courses'); // Print the course IDs to the debug console
 }
 
 
-  @override
+@override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
@@ -384,38 +356,60 @@ Future<void> _saveCourses(List<dynamic> courses) async {
                         ),
                       ),
                       SizedBox(height: screenHeight * 0.02),
-                      // Role Selection Checkboxes
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Checkbox(
-                            value: _selectedRole == 'Faculty',
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedRole = value! ? 'Faculty' : null;
-                              });
-                            },
+                      // Role Selection Dropdown
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          vertical: screenHeight * 0.015,
+                          horizontal: screenWidth * 0.05,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius:
+                              BorderRadius.circular(screenWidth * 0.05),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: DropdownButtonFormField<String>(
+                          value: _selectedRole,
+                          hint: const Text('Select Role'),
+                          decoration: InputDecoration(
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(
+                              vertical: screenHeight * 0.015,
+                              horizontal: screenWidth * 0.05,
+                            ),
+                            // suffixIcon: const Icon(Icons.import_contacts),
                           ),
-                          const Text('Faculty'),
-                          Checkbox(
-                            value: _selectedRole == 'Student',
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedRole = value! ? 'Student' : null;
-                              });
-                            },
-                          ),
-                          const Text('Student'),
-                          Checkbox(
-                            value: _selectedRole == 'Parent',
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedRole = value! ? 'Parent' : null;
-                              });
-                            },
-                          ),
-                          const Text('Parent'),
-                        ],
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'Faculty',
+                              child: Text('Faculty', style: TextStyle(fontSize: 16)),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Student',
+                              child: Text('Student', style: TextStyle(fontSize: 16)),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Parent',
+                              child: Text('Parent', style: TextStyle(fontSize: 16)),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Admin',
+                              child: Text('Admin', style: TextStyle(fontSize: 16)),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedRole = value;
+                            });
+                          },
+                        ),
                       ),
                       SizedBox(height: screenHeight * 0.02),
                       ElevatedButton(

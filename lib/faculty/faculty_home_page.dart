@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:diet_portal/faculty/notices_page.dart';
 import 'package:diet_portal/faculty/faculty_personal_info.dart';
 import 'package:diet_portal/faculty/faculty_attendance_page.dart';
-import 'package:diet_portal/faculty/courses_teaching_page.dart'; // Import the new page
+import 'package:diet_portal/faculty/courses_teaching_page.dart';
 
 class FacultyHomePage extends StatefulWidget {
   final String username;
@@ -11,7 +11,11 @@ class FacultyHomePage extends StatefulWidget {
   const FacultyHomePage({
     super.key,
     required this.username,
-    required this.token, required email, required notices, required String facultyName, List? coursesTeaching,
+    required this.token,
+    required email,
+    required notices,
+    required String facultyName,
+    List? coursesTeaching,
   });
 
   @override
@@ -36,7 +40,8 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
     // Simulate network call
     await Future.delayed(const Duration(seconds: 2));
     setState(() {
-      notices = ['Notice 1', 'Notice 2']; // Update with actual data
+      // Fetch notices and update the list
+      notices = ['Notice 1', 'Notice 2']; // Replace with actual fetched data
       isLoadingNotices = false;
     });
   }
@@ -55,6 +60,12 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
       "Email": "shubham5818@gmail.com",
       "CoursesTeaching": [103, 104, 203]
     };
+  }
+
+  void deleteNotice(String notice) {
+    setState(() {
+      notices.remove(notice); // Remove the notice from the list
+    });
   }
 
   @override
@@ -124,7 +135,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
               );
             },
           );
-                },
+        },
         backgroundColor: Colors.blue,
         tooltip: 'View Personal Info',
         child: const Icon(Icons.account_circle, color: Colors.white),
@@ -172,8 +183,34 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
               ],
             ),
             const SizedBox(height: 10),
-            ...notices.map((notice) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
+            ...notices.map((notice) => GestureDetector(
+              onLongPress: () {
+                // Long press to delete notice, faculty only
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('Delete Notice'),
+                      content: const Text('Are you sure you want to delete this notice?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            deleteNotice(notice);
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('Delete'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('Cancel'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -209,13 +246,14 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
               );
             },
           );
-                } else if (title == 'Courses Teaching') {
+        } else if (title == 'Courses Teaching') {
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => CoursesTeachingPage(
                 facultyName: widget.username,
-                token: widget.token, facultyDetails: null, // Pass the token
+                token: widget.token,
+                facultyDetails: null,
               ),
             ),
           );
@@ -230,7 +268,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
                   'Physics',
                   'Chemistry',
                 ],
-                token: widget.token, // Pass the token
+                token: widget.token,
               ),
             ),
           );
@@ -245,7 +283,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
                   });
                 },
                 notices: notices,
-                token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmYWN1bHR5SWQiOiI2NjhlNTBlYmMwNzQ4OGUyMjEwMmNkNTYiLCJlbWFpbCI6InNodWJoYW01ODE4QGdtYWlsLmNvbSIsInJvbGUiOiJGYWN1bHR5IiwiaWF0IjoxNzIzMzE1MTc1LCJleHAiOjE3MjM0MDE1NzV9.PJT9n35-TwLpi-SxqU36KxTENcMt7FWReHouFG-ItjI', // Pass the token
+                token: widget.token,
               ),
             ),
           );
