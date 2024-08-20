@@ -17,7 +17,7 @@ class ParentHomePage extends StatelessWidget {
     required this.studentName,
     required this.rollNo,
     required this.year,
-    required this.section, required String username, required parentDetails, required contactNumber, required motherName, required fatherName, required parentId, required enrollNo, required String parentContact, required String parentEmail, required String parentAddress,
+    required this.section, required String username, required parentDetails, required contactNumber, required motherName, required fatherName, required parentId, required enrollNo, required String parentContact, required String parentEmail, required String parentAddress, required String token,
   });
 
   @override
@@ -85,7 +85,7 @@ class ParentHomePage extends StatelessWidget {
                               'Roll No': rollNo,
                             },
                             studentName: studentName,
-                            rollNo: rollNo,
+                            rollNo: rollNo, token: '',
                           ),
                         ),
                       ),
@@ -130,7 +130,7 @@ class ParentHomePage extends StatelessWidget {
                             year: year,
                             studentName: studentName,
                             section: section,
-                            studentDetails: const {},
+                            studentDetails: const {}, token: '',
                           ),
                         ),
                       ),

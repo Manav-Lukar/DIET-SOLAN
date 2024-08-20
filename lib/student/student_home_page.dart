@@ -9,13 +9,23 @@ class StudentHomePage extends StatelessWidget {
   final List<String> notices;
   final List<int> subjectsData; // Converted to List<int>
   final Map<String, dynamic> studentDetails;
+  final String studentName;
+  final String rollNo;
+  final String section;
+  final String token;
+  final String year;
 
   const StudentHomePage({
     super.key,
     required this.username,
     required this.notices,
     required this.subjectsData,
-    required this.studentDetails, required String studentName, required String rollNo, required section, required String token, required String year,
+    required this.studentDetails,
+    required this.studentName,
+    required this.rollNo,
+    required this.section,
+    required this.token,
+    required this.year,
   });
 
   @override
@@ -29,7 +39,7 @@ class StudentHomePage extends StatelessWidget {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-                    onPressed: () {
+          onPressed: () {
             Navigator.pushReplacementNamed(context, '/');
           },
         ),
@@ -102,8 +112,9 @@ class StudentHomePage extends StatelessWidget {
                           builder: (context) => FeeDetailsPage(
                             username: username,
                             studentDetails: studentDetails,
-                            studentName: studentDetails['fName'],
-                            rollNo: studentDetails['rollNo'].toString(),
+                            studentName: studentName,
+                            rollNo: rollNo,
+                            token: token,
                           ),
                         ),
                       ),
@@ -118,12 +129,12 @@ class StudentHomePage extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (context) => AcademicDetailsPage(
                             username: username,
-                            subjectsData: subjectsData, // Passed as List<int>
+                            subjectsData: subjectsData,
                             studentDetails: studentDetails,
-                            studentName: studentDetails['fName'],
-                            rollNo: studentDetails['rollNo'].toString(),
+                            studentName: studentName,
+                            rollNo: rollNo,
                             subjects: const [], 
-                            token: '', // Add your token here
+                            token: token, // Pass token here
                           ),
                         ),
                       ),
@@ -139,14 +150,15 @@ class StudentHomePage extends StatelessWidget {
                           builder: (context) => ClassAttendancePage(
                             enrollNo: studentDetails['enrollNo'].toString(),
                             username: username,
-                            name: '${studentDetails['fName']} ${studentDetails['lName']}',
-                            rollNo: studentDetails['rollNo'].toString(),
+                            name: studentName,
+                            rollNo: rollNo,
                             fineData: const {},
                             subjectsData: subjectsData,
-                            year: studentDetails['year'].toString(),
-                            studentName: studentDetails['fName'],
-                            section: studentDetails['section'] ?? '',
+                            year: year,
+                            studentName: studentName,
+                            section: section,
                             studentDetails: const {},
+                            token: token, // Pass token here
                           ),
                         ),
                       ),

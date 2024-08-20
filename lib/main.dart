@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'login_page.dart'; // Import the LoginPage widget
-
+import 'splash_screen.dart'; // Import the SplashScreen widget
 
 void main() {
   runApp(const MyApp());
@@ -32,7 +31,7 @@ class MyApp extends StatelessWidget {
         ),
         textTheme: GoogleFonts.latoTextTheme(),
       ),
-      home: const LoginPage(),
+      home: const SplashScreen(), // Set SplashScreen as the initial screen
     );
   }
 }
