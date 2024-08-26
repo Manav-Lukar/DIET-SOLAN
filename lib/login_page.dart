@@ -67,13 +67,9 @@ Future<void> _loginUser(BuildContext context) async {
   late Map<String, dynamic> requestBody;
 
   // Determine API URL based on selected role
-  if (_selectedRole == 'Faculty') {
+  if (_selectedRole == 'Faculty' || _selectedRole == 'Admin') {
     apiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/faculty/faculty-login';
-    successRole = 'Faculty';
-    requestBody = {'email': usernameInput};
-  } else if (_selectedRole == 'Admin') {
-    apiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/faculty/faculty-login';
-    successRole = 'Admin';
+    successRole = _selectedRole!;
     requestBody = {'email': usernameInput};
   } else if (_selectedRole == 'Student') {
     apiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/student/student-login';
@@ -110,7 +106,6 @@ Future<void> _loginUser(BuildContext context) async {
     // Determine the correct details key based on role
     var detailsKey = successRole == 'Admin' ? 'facultyDetails' : '${successRole.toLowerCase()}Details';
     if (successRole == 'Parent') {
-      // For Parent, use 'parentsDetails'
       detailsKey = 'parentsDetails';
     }
     print('Details key: $detailsKey');
@@ -129,6 +124,8 @@ Future<void> _loginUser(BuildContext context) async {
           }
 
           if (successRole == 'Admin') {
+            final adminName = userDetails['Name'];
+            final adminEmail = userDetails['email'];
             final coursesTeaching = userDetails['coursesTeaching'] ?? [];
             final classesTeaching = userDetails['classesTeaching'] ?? [];
 
@@ -136,7 +133,12 @@ Future<void> _loginUser(BuildContext context) async {
               context,
               MaterialPageRoute(
                 builder: (context) => AdminHomePage(
-                  // Pass the necessary details if required
+                  adminInfo: {
+                    'name': adminName,
+                    'email': adminEmail,
+                    'coursesTeaching': coursesTeaching,
+                    'classesTeaching': classesTeaching,
+                  },
                 ),
               ),
             );
@@ -234,7 +236,6 @@ Future<void> _loginUser(BuildContext context) async {
     });
   }
 }
-
 
 
   // Add method to save coursesTeaching in SharedPreferences

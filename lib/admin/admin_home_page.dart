@@ -1,6 +1,19 @@
+import 'package:diet_portal/admin/faculty_add_and_delete_faculty.dart';
 import 'package:flutter/material.dart';
+import 'admin_personal_info.dart';
+import 'student_add_and_delete.dart'; // Import the Student management file
+import 'parent_add_and_delete.dart';  // Import the Parent management file
+import 'course_add_and_delete.dart';  // Import the Course management file
+import 'notice_publish.dart'; // Import the Notice publishing file
 
 class AdminHomePage extends StatelessWidget {
+  final Map<String, dynamic> adminInfo;
+
+  const AdminHomePage({
+    super.key,
+    required this.adminInfo,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,12 +50,83 @@ class AdminHomePage extends StatelessWidget {
                   mainAxisSpacing: 20.0,
                   crossAxisSpacing: 20.0,
                   children: [
-                    buildTile(context, 'Personal Info', Icons.person, Colors.blue),
-                    buildTile(context, 'Faculty', Icons.school, Colors.green),
-                    buildTile(context, 'Student', Icons.people, Colors.orange),
-                    buildTile(context, 'Course', Icons.book, Colors.purple),
-                    buildTile(context, 'Parent', Icons.family_restroom, Colors.teal),
-                    buildTile(context, 'Notice', Icons.notifications, Colors.red),
+                    buildTile(
+                      context,
+                      'Personal Info',
+                      Icons.person,
+                      Colors.blue,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AdminPersonalInfoPage(
+                            adminInfo: {
+                              'name': adminInfo['name'],
+                              'email': adminInfo['email'],
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                    buildTile(
+                      context,
+                      'Faculty',
+                      Icons.school,
+                      Colors.green,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FacultyAddAndDeletePage(),
+                        ),
+                      ),
+                    ),
+                    buildTile(
+                      context,
+                      'Student',
+                      Icons.people,
+                      Colors.orange,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => StudentAddAndDeletePage(),
+                        ),
+                      ),
+                    ),
+                    buildTile(
+                      context,
+                      'Parent',
+                      Icons.family_restroom,
+                      Colors.teal,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ParentAddAndDeletePage(),
+                        ),
+                      ),
+                    ),
+                    buildTile(
+                      context,
+                      'Course',
+                      Icons.book,
+                      Colors.purple,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CourseAddAndDeletePage(),
+                        ),
+                      ),
+                    ),
+                    buildTile(
+                      context,
+                      'Notice',
+                      Icons.notifications,
+                      Colors.red,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => NoticePublishPage(),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -53,13 +137,9 @@ class AdminHomePage extends StatelessWidget {
     );
   }
 
-  Widget buildTile(BuildContext context, String title, IconData icon, Color color) {
+  Widget buildTile(BuildContext context, String title, IconData icon, Color color, VoidCallback onTap) {
     return GestureDetector(
-      onTap: () {
-        // Placeholder for tile functionality
-        // You can navigate to respective pages here
-        print('$title tile pressed');
-      },
+      onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
