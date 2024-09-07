@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class Faculty {
   final String id;
@@ -10,6 +12,15 @@ class Faculty {
     required this.name,
     required this.email,
   });
+
+  // Factory constructor to create a Faculty from JSON
+  factory Faculty.fromJson(Map<String, dynamic> json) {
+    return Faculty(
+      id: json['id'].toString(),  // Convert to string if needed
+      name: json['name'],
+      email: json['email'],
+    );
+  }
 }
 
 class FacultyAddAndDeletePage extends StatefulWidget {
@@ -20,11 +31,41 @@ class FacultyAddAndDeletePage extends StatefulWidget {
 }
 
 class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
-  List<Faculty> _faculties = [
-    Faculty(id: '1', name: 'Dr. John Doe', email: 'john.doe@example.com'),
-    Faculty(id: '2', name: 'Dr. Jane Smith', email: 'jane.smith@example.com'),
-    // Add more faculty as needed
-  ];
+  List<Faculty> _faculties = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchFaculties();
+  }
+
+  Future<void> fetchFaculties() async {
+    final url = 'https://student-attendance-system-ckb1.onrender.com/api/faculty/show-faculty?role=Faculty';
+    try {
+      final response = await http.get(Uri.parse(url), headers: {
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmYWN1bHR5SWQiOiI2NjdlNWYzNTBmMjZkYmFjYTU2MjZlZWEiLCJlbWFpbCI6InNodWJoYW01ODE4OEBnbWFpbC5jb20iLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3MjQ4MjA0MTQsImV4cCI6MTcyNDkwNjgxNH0.eoV6nlJSL-DpWrrWvD9J4dnUTyjtLI85Us3oalfKB-8', // Replace with your token
+      });
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _faculties = data.map((facultyJson) => Faculty.fromJson(facultyJson)).toList();
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+        print('Failed to load faculties');
+      }
+    } catch (error) {
+      setState(() {
+        isLoading = false;
+      });
+      print('Error: $error');
+    }
+  }
 
   void _addFaculty() {
     showDialog(
@@ -95,51 +136,53 @@ class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
         ),
         elevation: 0,
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFE0F7FA),
-              Color(0xFFE0F2F1),
-            ],
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              ElevatedButton(
-                onPressed: _addFaculty,
-                child: const Text('Add New Faculty'),
-              ),
-              const SizedBox(height: 16.0),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _faculties.length,
-                  itemBuilder: (context, index) {
-                    final faculty = _faculties[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: ListTile(
-                        title: Text(faculty.name),
-                        subtitle: Text(faculty.email),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () {
-                            _deleteFaculty(faculty.id);
-                          },
-                        ),
-                      ),
-                    );
-                  },
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFFE0F7FA),
+                    Color(0xFFE0F2F1),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    ElevatedButton(
+                      onPressed: _addFaculty,
+                      child: const Text('Add New Faculty'),
+                    ),
+                    const SizedBox(height: 16.0),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: _faculties.length,
+                        itemBuilder: (context, index) {
+                          final faculty = _faculties[index];
+                          return Card(
+                            margin: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: ListTile(
+                              title: Text(faculty.name),
+                              subtitle: Text(faculty.email),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () {
+                                  _deleteFaculty(faculty.id);
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 }

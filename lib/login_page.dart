@@ -66,7 +66,6 @@ Future<void> _loginUser(BuildContext context) async {
   late String successRole;
   late Map<String, dynamic> requestBody;
 
-  // Determine API URL based on selected role
   if (_selectedRole == 'Faculty' || _selectedRole == 'Admin') {
     apiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/faculty/faculty-login';
     successRole = _selectedRole!;
@@ -103,7 +102,6 @@ Future<void> _loginUser(BuildContext context) async {
 
     final data = jsonDecode(response.body);
 
-    // Determine the correct details key based on role
     var detailsKey = successRole == 'Admin' ? 'facultyDetails' : '${successRole.toLowerCase()}Details';
     if (successRole == 'Parent') {
       detailsKey = 'parentsDetails';
@@ -113,107 +111,100 @@ Future<void> _loginUser(BuildContext context) async {
     if (response.statusCode == 200) {
       if (data.containsKey(detailsKey)) {
         final userDetails = data[detailsKey];
-
         print('User details: $userDetails');
 
-        if (userDetails['role'] == successRole) {
-          final token = userDetails['token'];
-          if (token != null) {
-            print('Token from response: $token');
-            await _saveToken(token);
+        final token = userDetails['token'];
+        if (token != null) {
+          print('Token from response: $token');
+          await _saveToken(token);
+        }
+
+        if (successRole == 'Admin') {
+          final adminName = userDetails['Name'];
+          final adminEmail = userDetails['email'];
+          final coursesTeaching = userDetails['coursesTeaching'] ?? [];
+          final classesTeaching = userDetails['classesTeaching'] ?? [];
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AdminHomePage(
+                adminInfo: {
+                  'name': adminName,
+                  'email': adminEmail,
+                  'coursesTeaching': coursesTeaching,
+                  'classesTeaching': classesTeaching,
+                },
+              ),
+            ),
+          );
+        } else if (successRole == 'Student') {
+          final courses = userDetails['courses'] ?? [];
+          if (courses != null) {
+            print('Courses from response: $courses');
+            await _saveCourses(courses);
           }
 
-          if (successRole == 'Admin') {
-            final adminName = userDetails['Name'];
-            final adminEmail = userDetails['email'];
-            final coursesTeaching = userDetails['coursesTeaching'] ?? [];
-            final classesTeaching = userDetails['classesTeaching'] ?? [];
-
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AdminHomePage(
-                  adminInfo: {
-                    'name': adminName,
-                    'email': adminEmail,
-                    'coursesTeaching': coursesTeaching,
-                    'classesTeaching': classesTeaching,
-                  },
-                ),
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => StudentHomePage(
+                username: _usernameController.text,
+                notices: const [], // Adjust as per your app logic
+                subjectsData: const [], // Adjust as per your app logic
+                studentDetails: userDetails,
+                studentName: '${userDetails['fName']} ${userDetails['lName']}',
+                rollNo: userDetails['rollNo'].toString(),
+                year: userDetails['year'].toString(),
+                section: userDetails['section'],
+                token: token ?? '', role: '',
               ),
-            );
-          } else if (successRole == 'Student') {
-            final courses = userDetails['courses'] ?? [];
-            if (courses != null) {
-              print('Courses from response: $courses');
-              await _saveCourses(courses);
-            }
-
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => StudentHomePage(
-                  username: _usernameController.text,
-                  notices: const [], // Adjust as per your app logic
-                  subjectsData: const [], // Adjust as per your app logic
-                  studentDetails: userDetails,
-                  studentName: '${userDetails['fName']} ${userDetails['lName']}',
-                  rollNo: userDetails['rollNo'].toString(),
-                  year: userDetails['year'].toString(),
-                  section: userDetails['section'],
-                  token: token ?? '',
-                ),
-              ),
-            );
-          } else if (successRole == 'Faculty') {
-            final coursesTeaching = userDetails['coursesTeaching'] ?? [];
-            if (coursesTeaching != null) {
-              print('Courses Teaching from response: $coursesTeaching');
-              await _saveCoursesTeaching(coursesTeaching);
-            }
-
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => FacultyHomePage(
-                  username: userDetails['fName'] ?? 'Faculty',
-                  email: userDetails['email'] ?? '',
-                  notices: null, // Adjust as per your app logic
-                  facultyName: '', // Adjust as needed
-                  token: token ?? '', // Pass the token here
-                  coursesTeaching: coursesTeaching,
-                ),
-              ),
-            );
-          } else if (successRole == 'Parent') {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ParentHomePage(
-                  parentDetails: userDetails,
-                  parentName: '${userDetails['fatherName']} & ${userDetails['motherName']}',
-                  enrollNo: userDetails['enrollNo'].toString(),
-                  contactNumber: userDetails['contactNumber'].toString(),
-                  token: token ?? '',
-                  studentName: '',
-                  rollNo: '',
-                  year: '',
-                  section: '',
-                  username: '',
-                  motherName: null,
-                  fatherName: null,
-                  parentId: null,
-                  parentContact: '',
-                  parentEmail: '',
-                  parentAddress: '',
-                ),
-              ),
-            );
+            ),
+          );
+        } else if (successRole == 'Faculty') {
+          final coursesTeaching = userDetails['coursesTeaching'] ?? [];
+          if (coursesTeaching != null) {
+            print('Courses Teaching from response: $coursesTeaching');
+            await _saveCoursesTeaching(coursesTeaching);
           }
-        } else {
-          setState(() {
-            _errorMessage = 'Invalid role or data format';
-          });
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => FacultyHomePage(
+                username: userDetails['fName'] ?? 'Faculty',
+                email: userDetails['email'] ?? '',
+                notices: [], // Adjust as per your app logic
+                facultyName: '', // Adjust as needed
+                token: token ?? '', // Pass the token here
+                coursesTeaching: userDetails['coursesTeaching'], classesTeaching: null,
+              ),
+            ),
+          );
+        } else if (successRole == 'Parent') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ParentHomePage(
+                parentDetails: userDetails,
+                parentName: '${userDetails['fatherName']} & ${userDetails['motherName']}',
+                enrollNo: userDetails['enrollNo'].toString(),
+                contactNumber: userDetails['contactNumber'].toString(),
+                token: token ?? '',
+                studentName: '',
+                rollNo: '',
+                year: '',
+                section: '',
+                username: '',
+                motherName: null,
+                fatherName: null,
+                parentId: null,
+                parentContact: '',
+                parentEmail: '',
+                parentAddress: '',
+              ),
+            ),
+          );
         }
       } else {
         setState(() {
@@ -236,6 +227,7 @@ Future<void> _loginUser(BuildContext context) async {
     });
   }
 }
+
 
 
   // Add method to save coursesTeaching in SharedPreferences

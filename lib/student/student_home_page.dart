@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:diet_portal/student/FeeDetailsPage.dart';
 import 'package:diet_portal/student/class_attendance_page.dart';
 import 'package:diet_portal/student/academic_details_page.dart';
 import 'package:diet_portal/student/student_personal_info.dart';
 
 class StudentHomePage extends StatelessWidget {
   final String username;
-  final List<String> notices;
-  final List<int> subjectsData; // Converted to List<int>
+  final List<int> subjectsData;
   final Map<String, dynamic> studentDetails;
   final String studentName;
   final String rollNo;
@@ -18,7 +16,6 @@ class StudentHomePage extends StatelessWidget {
   const StudentHomePage({
     super.key,
     required this.username,
-    required this.notices,
     required this.subjectsData,
     required this.studentDetails,
     required this.studentName,
@@ -26,6 +23,8 @@ class StudentHomePage extends StatelessWidget {
     required this.section,
     required this.token,
     required this.year,
+    required List notices,
+    required String role,
   });
 
   @override
@@ -35,7 +34,8 @@ class StudentHomePage extends StatelessWidget {
         backgroundColor: const Color.fromARGB(255, 225, 244, 248),
         title: Text(
           'Welcome, ${studentDetails['fName']}',
-          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style:
+              const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -60,8 +60,6 @@ class StudentHomePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 20.0),
-            _buildNoticesSection(),
-            const SizedBox(height: 20.0),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -72,9 +70,9 @@ class StudentHomePage extends StatelessWidget {
                   crossAxisSpacing: 20.0,
                   children: [
                     buildTile(
-                      context, 
-                      'Personal Info', 
-                      Icons.person, 
+                      context,
+                      'Personal Info',
+                      Icons.person,
                       Colors.blue,
                       () => showDialog(
                         context: context,
@@ -82,9 +80,11 @@ class StudentHomePage extends StatelessWidget {
                           return PersonalInfoDialog(
                             studentInfo: {
                               'ID': studentDetails['id'].toString(),
-                              'Enroll No': studentDetails['enrollNo'].toString(),
+                              'Enroll No':
+                                  studentDetails['enrollNo'].toString(),
                               'Roll No': studentDetails['rollNo'].toString(),
-                              'Name': '${studentDetails['fName']} ${studentDetails['lName']}',
+                              'Name':
+                                  '${studentDetails['fName']} ${studentDetails['lName']}',
                               'Year': studentDetails['year'].toString(),
                               'Section': studentDetails['section'] ?? '',
                               'DOB': studentDetails['dob'] ?? '',
@@ -95,34 +95,17 @@ class StudentHomePage extends StatelessWidget {
                             username: username,
                             facultyInfo: const {},
                             role: '',
-                            info: const {}, 
+                            info: const {},
                             parentsDetails: const {},
+                            parentInfo: {},
                           );
                         },
                       ),
                     ),
                     buildTile(
-                      context, 
-                      'Fee Details', 
-                      Icons.account_balance, 
-                      Colors.green,
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => FeeDetailsPage(
-                            username: username,
-                            studentDetails: studentDetails,
-                            studentName: studentName,
-                            rollNo: rollNo,
-                            token: token,
-                          ),
-                        ),
-                      ),
-                    ),
-                    buildTile(
-                      context, 
-                      'Academic Details', 
-                      Icons.school, 
+                      context,
+                      'Academic Details',
+                      Icons.school,
                       Colors.orange,
                       () => Navigator.push(
                         context,
@@ -133,16 +116,16 @@ class StudentHomePage extends StatelessWidget {
                             studentDetails: studentDetails,
                             studentName: studentName,
                             rollNo: rollNo,
-                            subjects: const [], 
-                            token: token, // Pass token here
+                            subjects: const [],
+                            token: token,
                           ),
                         ),
                       ),
                     ),
                     buildTile(
-                      context, 
-                      'Class Attendance', 
-                      Icons.assignment, 
+                      context,
+                      'Class Attendance',
+                      Icons.assignment,
                       Colors.red,
                       () => Navigator.push(
                         context,
@@ -158,7 +141,7 @@ class StudentHomePage extends StatelessWidget {
                             studentName: studentName,
                             section: section,
                             studentDetails: const {},
-                            token: token, // Pass token here
+                            token: token,
                           ),
                         ),
                       ),
@@ -173,70 +156,8 @@ class StudentHomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildNoticesSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Container(
-        padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              spreadRadius: 2,
-              blurRadius: 5,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Recent Notices',
-                  style: TextStyle(
-                    color: Colors.black87,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                // Refresh button (if needed)
-                // IconButton(
-                //   icon: isLoadingNotices
-                //       ? const CircularProgressIndicator()
-                //       : const Icon(Icons.refresh, color: Colors.blue),
-                //   onPressed: isLoadingNotices ? null : fetchNotices,
-                // ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            ...notices.map((notice) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.notifications, size: 16, color: Colors.black54),
-                  const SizedBox(width: 8.0),
-                  Expanded(
-                    child: Text(
-                      '• $notice',
-                      style: const TextStyle(color: Colors.black87),
-                    ),
-                  ),
-                ],
-              ),
-            )),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget buildTile(BuildContext context, String title, IconData icon, Color color, VoidCallback onTap) {
+  Widget buildTile(BuildContext context, String title, IconData icon,
+      Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(

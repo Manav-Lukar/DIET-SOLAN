@@ -171,7 +171,7 @@ class ParentHomePage extends StatelessWidget {
             username: '',
             facultyInfo: const {},
             role: '',
-            info: const {}, parentsDetails: {},
+            info: const {}, parentsDetails: {}, parentInfo: {},
           ),
         );
       },

@@ -29,15 +29,19 @@ class FacultyInfoDialog extends StatelessWidget {
             ),
             ListTile(
               title: const Text('Courses Teaching'),
-              subtitle: Text((facultyInfo['CoursesTeaching'] as List<dynamic>?)?.join(', ') ?? 'Not Available'),
+              subtitle: Text(_formatClassesTeaching(facultyInfo['CoursesTeaching'])),
             ),
             ListTile(
-              title: const Text('Classes Teaching'),
-              subtitle: Text(_formatClassesTeaching(facultyInfo['ClassesTeaching'])),
+              title: const Text('Student Name'),
+              subtitle: Text(studentInfo['Name'] ?? 'Not Available'),
             ),
             ListTile(
-              title: const Text('Role'),
-              subtitle: Text(facultyInfo['Role'] ?? 'Not Available'),
+              title: const Text('Student Roll Number'),
+              subtitle: Text(studentInfo['RollNumber'] ?? 'Not Available'),
+            ),
+            ListTile(
+              title: const Text('Student Year'),
+              subtitle: Text(studentInfo['Year'] ?? 'Not Available'),
             ),
           ],
         ),
@@ -60,7 +64,7 @@ class FacultyInfoDialog extends StatelessWidget {
 
     return classesTeaching.map((classInfo) {
       final year = classInfo['year'];
-      final sections = (classInfo['sections'] as List<dynamic>?)?.join(', ');
+      final sections = (classInfo['sections'] as List<dynamic>?)?.join(', ') ?? 'No Sections';
       return 'Year $year: Sections $sections';
     }).join('\n');
   }

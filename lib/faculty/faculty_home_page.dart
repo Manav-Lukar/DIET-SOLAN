@@ -1,49 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:diet_portal/faculty/notices_page.dart';
-import 'package:diet_portal/faculty/faculty_personal_info.dart';
-import 'package:diet_portal/faculty/faculty_attendance_page.dart';
-import 'package:diet_portal/faculty/courses_teaching_page.dart';
+import 'faculty_personal_info.dart';
+import 'faculty_attendance_page.dart';
+import 'courses_teaching_page.dart';
 
 class FacultyHomePage extends StatefulWidget {
   final String username;
   final String token;
+  final String email;
+  final String facultyName;
+  final List<dynamic> coursesTeaching;
+  final List<dynamic> notices;
 
   const FacultyHomePage({
-    super.key,
+    Key? key,
     required this.username,
     required this.token,
-    required email,
-    required notices,
-    required String facultyName,
-    List? coursesTeaching,
-  });
+    required this.email,
+    required this.facultyName,
+    required this.coursesTeaching,
+    required this.notices, required classesTeaching,
+  }) : super(key: key);
 
   @override
   _FacultyHomePageState createState() => _FacultyHomePageState();
 }
 
 class _FacultyHomePageState extends State<FacultyHomePage> {
-  List<String> notices = [];
-  bool isLoadingNotices = false;
   bool isLoadingFacultyInfo = false;
 
   @override
   void initState() {
     super.initState();
-    fetchNotices(); // Fetch notices on initial load
-  }
-
-  Future<void> fetchNotices() async {
-    setState(() {
-      isLoadingNotices = true;
-    });
-    // Simulate network call
-    await Future.delayed(const Duration(seconds: 2));
-    setState(() {
-      // Fetch notices and update the list
-      notices = ['Notice 1', 'Notice 2']; // Replace with actual fetched data
-      isLoadingNotices = false;
-    });
   }
 
   Future<Map<String, Object>> fetchFacultyInfo() async {
@@ -56,16 +43,10 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
       isLoadingFacultyInfo = false;
     });
     return {
-      "Name": "Shubham",
-      "Email": "shubham5818@gmail.com",
-      "CoursesTeaching": [103, 104, 203]
+      "Name": widget.facultyName,
+      "Email": widget.email,
+      "CoursesTeaching": widget.coursesTeaching,
     };
-  }
-
-  void deleteNotice(String notice) {
-    setState(() {
-      notices.remove(notice); // Remove the notice from the list
-    });
   }
 
   @override
@@ -74,7 +55,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 225, 244, 248),
         title: Text(
-          'Welcome, ${widget.username}',
+          'Welcome ${widget.facultyName}',
           style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
@@ -99,9 +80,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 20.0),
-            _buildNoticesSection(),
-            const SizedBox(height: 20.0),
+            const SizedBox(height: 40.0), // Pushing the tiles down
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -111,10 +90,12 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
                   mainAxisSpacing: 20.0,
                   crossAxisSpacing: 20.0,
                   children: [
-                    buildTile(context, 'Personal Info', Icons.person, Colors.blue),
-                    buildTile(context, 'Courses Teaching', Icons.book, Colors.green),
-                    buildTile(context, 'Attendance Records', Icons.assignment, Colors.orange),
-                    buildTile(context, 'Notices', Icons.notifications, Colors.red),
+                    buildTile(
+                        context, 'Personal Info', Icons.person, Colors.blue),
+                    buildTile(
+                        context, 'Courses Teaching', Icons.book, Colors.green),
+                    buildTile(context, 'Attendance Records', Icons.assignment,
+                        Colors.orange),
                   ],
                 ),
               ),
@@ -130,7 +111,6 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
             builder: (BuildContext context) {
               return FacultyInfoDialog(
                 facultyInfo: response,
-                studentInfo: const {},
                 username: widget.username,
               );
             },
@@ -143,117 +123,20 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
     );
   }
 
-  Widget _buildNoticesSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Container(
-        padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              spreadRadius: 2,
-              blurRadius: 5,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Recent Notices',
-                  style: TextStyle(
-                    color: Colors.black87,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                IconButton(
-                  icon: isLoadingNotices
-                      ? const CircularProgressIndicator()
-                      : const Icon(Icons.refresh, color: Colors.blue),
-                  onPressed: isLoadingNotices ? null : fetchNotices,
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            ...notices.map((notice) => GestureDetector(
-              onLongPress: () {
-                // Long press to delete notice, faculty only
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Delete Notice'),
-                      content: const Text('Are you sure you want to delete this notice?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            deleteNotice(notice);
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('Delete'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('Cancel'),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.notifications, size: 16, color: Colors.black54),
-                  const SizedBox(width: 8.0),
-                  Expanded(
-                    child: Text(
-                      '• $notice',
-                      style: const TextStyle(color: Colors.black87),
-                    ),
-                  ),
-                ],
-              ),
-            )),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget buildTile(BuildContext context, String title, IconData icon, Color color) {
+  Widget buildTile(
+      BuildContext context, String title, IconData icon, Color color) {
     return GestureDetector(
-      onTap: () async {
+      onTap: () {
         if (title == 'Personal Info') {
-          final response = await fetchFacultyInfo();
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return FacultyInfoDialog(
-                facultyInfo: response,
-                studentInfo: const {},
-                username: widget.username,
-              );
-            },
-          );
+          fetchAndShowFacultyInfo(context);
         } else if (title == 'Courses Teaching') {
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => CoursesTeachingPage(
-                facultyName: widget.username,
+                facultyName: widget.facultyName,
                 token: widget.token,
-                facultyDetails: null,
+                facultyDetails: widget.coursesTeaching,
               ),
             ),
           );
@@ -262,27 +145,8 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
             context,
             MaterialPageRoute(
               builder: (context) => FacultyAttendancePage(
-                facultyName: widget.username,
-                subjects: const [
-                  'Mathematics',
-                  'Physics',
-                  'Chemistry',
-                ],
-                token: widget.token,
-              ),
-            ),
-          );
-        } else if (title == 'Notices') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => NoticesPage(
-                onMessagePublished: (message) {
-                  setState(() {
-                    notices.add(message);
-                  });
-                },
-                notices: notices,
+                facultyName: widget.facultyName,
+                subjects: const ['Mathematics', 'Physics', 'Chemistry'],
                 token: widget.token,
               ),
             ),
@@ -334,6 +198,51 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> fetchAndShowFacultyInfo(BuildContext context) async {
+    final response = await fetchFacultyInfo();
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return FacultyInfoDialog(
+          facultyInfo: response,
+          username: widget.username,
+        );
+      },
+    );
+  }
+}
+
+class FacultyInfoDialog extends StatelessWidget {
+  final Map<String, Object> facultyInfo;
+  final String username;
+
+  const FacultyInfoDialog({
+    Key? key,
+    required this.facultyInfo,
+    required this.username,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Faculty Information'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Name: ${facultyInfo["Name"]}'),
+          Text('Email: ${facultyInfo["Email"]}'),
+          Text('Courses Teaching: ${facultyInfo["CoursesTeaching"].toString()}'),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Close'),
+        ),
+      ],
     );
   }
 }

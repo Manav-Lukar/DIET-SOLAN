@@ -9,7 +9,7 @@ class PersonalInfoDialog extends StatelessWidget {
     super.key,
     required this.studentInfo,
     required this.username,
-    required this.facultyInfo, required String role, required Map info, required Map<String, dynamic> parentsDetails,
+    required this.facultyInfo, required String role, required Map info, required Map<String, dynamic> parentsDetails, required Map parentInfo,
   });
 
   @override

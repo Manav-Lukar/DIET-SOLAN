@@ -76,7 +76,7 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
       final String token = widget.token;
 
       final response = await http.get(
-        Uri.parse('https://student-attendance-system-ckb1.onrender.com/api/attendance/show-attendance-student/$enrollNo?courseId=101'),
+        Uri.parse('https://student-attendance-system-ckb1.onrender.com/api/attendance/show-attendance-student/$enrollNo'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -272,7 +272,7 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
                                 children: [
                                   Text('Date: $formattedDate', style: const TextStyle(fontSize: 16)),
                                   Text('Time: $time', style: const TextStyle(fontSize: 16)),
-                                  Text('Status: $status', style: const TextStyle(fontSize: 16)),
+                                  Text('Status: $status', style: TextStyle(fontSize: 16, color: status == 'P' ? Colors.green : Colors.red)),
                                 ],
                               ),
                             ),
