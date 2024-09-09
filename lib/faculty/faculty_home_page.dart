@@ -3,12 +3,13 @@ import 'faculty_personal_info.dart';
 import 'faculty_attendance_page.dart';
 import 'courses_teaching_page.dart';
 
-class FacultyHomePage extends StatefulWidget {
+class FacultyHomePage extends StatelessWidget {
   final String username;
   final String token;
   final String email;
   final String facultyName;
   final List<dynamic> coursesTeaching;
+  final List<dynamic> classesTeaching;
   final List<dynamic> notices;
 
   const FacultyHomePage({
@@ -18,36 +19,9 @@ class FacultyHomePage extends StatefulWidget {
     required this.email,
     required this.facultyName,
     required this.coursesTeaching,
-    required this.notices, required classesTeaching,
+    required this.classesTeaching,
+    required this.notices,
   }) : super(key: key);
-
-  @override
-  _FacultyHomePageState createState() => _FacultyHomePageState();
-}
-
-class _FacultyHomePageState extends State<FacultyHomePage> {
-  bool isLoadingFacultyInfo = false;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  Future<Map<String, Object>> fetchFacultyInfo() async {
-    setState(() {
-      isLoadingFacultyInfo = true;
-    });
-    // Simulate network call
-    await Future.delayed(const Duration(seconds: 2));
-    setState(() {
-      isLoadingFacultyInfo = false;
-    });
-    return {
-      "Name": widget.facultyName,
-      "Email": widget.email,
-      "CoursesTeaching": widget.coursesTeaching,
-    };
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +29,7 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 225, 244, 248),
         title: Text(
-          'Welcome ${widget.facultyName}',
+          'Welcome $facultyName',
           style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
@@ -90,12 +64,9 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
                   mainAxisSpacing: 20.0,
                   crossAxisSpacing: 20.0,
                   children: [
-                    buildTile(
-                        context, 'Personal Info', Icons.person, Colors.blue),
-                    buildTile(
-                        context, 'Courses Teaching', Icons.book, Colors.green),
-                    buildTile(context, 'Attendance Records', Icons.assignment,
-                        Colors.orange),
+                    buildTile(context, 'Personal Info', Icons.person, Colors.blue),
+                    buildTile(context, 'Courses Teaching', Icons.book, Colors.green),
+                    buildTile(context, 'Attendance Records', Icons.assignment, Colors.orange),
                   ],
                 ),
               ),
@@ -104,14 +75,18 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final response = await fetchFacultyInfo();
+        onPressed: () {
           showDialog(
             context: context,
             builder: (BuildContext context) {
               return FacultyInfoDialog(
-                facultyInfo: response,
-                username: widget.username,
+                facultyInfo: {
+                  "Name": facultyName,
+                  "Email": email,
+                  "CoursesTeaching": coursesTeaching,
+                  "ClassesTeaching": classesTeaching,
+                },
+                username: username,
               );
             },
           );
@@ -123,20 +98,32 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
     );
   }
 
-  Widget buildTile(
-      BuildContext context, String title, IconData icon, Color color) {
+  Widget buildTile(BuildContext context, String title, IconData icon, Color color) {
     return GestureDetector(
       onTap: () {
         if (title == 'Personal Info') {
-          fetchAndShowFacultyInfo(context);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => FacultyInfoDialog(
+                facultyInfo: {
+                  "Name": facultyName,
+                  "Email": email,
+                  "CoursesTeaching": coursesTeaching,
+                  "ClassesTeaching": classesTeaching,
+                },
+                username: username,
+              ),
+            ),
+          );
         } else if (title == 'Courses Teaching') {
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => CoursesTeachingPage(
-                facultyName: widget.facultyName,
-                token: widget.token,
-                facultyDetails: widget.coursesTeaching,
+                facultyName: facultyName,
+                token: token,
+                facultyDetails: coursesTeaching,
               ),
             ),
           );
@@ -145,9 +132,9 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
             context,
             MaterialPageRoute(
               builder: (context) => FacultyAttendancePage(
-                facultyName: widget.facultyName,
+                facultyName: facultyName,
                 subjects: const ['Mathematics', 'Physics', 'Chemistry'],
-                token: widget.token,
+                token: token,
               ),
             ),
           );
@@ -198,51 +185,6 @@ class _FacultyHomePageState extends State<FacultyHomePage> {
           ),
         ),
       ),
-    );
-  }
-
-  Future<void> fetchAndShowFacultyInfo(BuildContext context) async {
-    final response = await fetchFacultyInfo();
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return FacultyInfoDialog(
-          facultyInfo: response,
-          username: widget.username,
-        );
-      },
-    );
-  }
-}
-
-class FacultyInfoDialog extends StatelessWidget {
-  final Map<String, Object> facultyInfo;
-  final String username;
-
-  const FacultyInfoDialog({
-    Key? key,
-    required this.facultyInfo,
-    required this.username,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Faculty Information'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('Name: ${facultyInfo["Name"]}'),
-          Text('Email: ${facultyInfo["Email"]}'),
-          Text('Courses Teaching: ${facultyInfo["CoursesTeaching"].toString()}'),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
-        ),
-      ],
     );
   }
 }

@@ -79,7 +79,7 @@ class StudentHomePage extends StatelessWidget {
                         builder: (BuildContext context) {
                           return PersonalInfoDialog(
                             studentInfo: {
-                              'ID': studentDetails['id'].toString(),
+                              // 'ID': studentDetails['id'].toString(),
                               'Enroll No':
                                   studentDetails['enrollNo'].toString(),
                               'Roll No': studentDetails['rollNo'].toString(),

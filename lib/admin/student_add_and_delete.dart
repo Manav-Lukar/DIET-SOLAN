@@ -1,141 +1,438 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class StudentAddAndDeletePage extends StatelessWidget {
-  final List<Map<String, String>> students = [
-    // Sample data, replace with real data from the backend
-    {'name': 'John Doe', 'email': 'john@example.com'},
-    {'name': 'Jane Smith', 'email': 'jane@example.com'},
-  ];
+class StudentAddAndDeletePage extends StatefulWidget {
+  @override
+  _StudentAddAndDeletePageState createState() =>
+      _StudentAddAndDeletePageState();
+}
+
+class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
+  List<Map<String, dynamic>> students = [];
+  bool isLoading = true;
+  final String apiUrl =
+      'https://student-attendance-system-ckb1.onrender.com/api/student/all-students';
+  final String addStudentApiUrl =
+      'https://student-attendance-system-ckb1.onrender.com/api/student/new-student';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchStudents();
+  }
+
+  Future<String?> _getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
+
+  Future<void> _fetchStudents() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    final token = await _getToken();
+
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No token found')),
+      );
+      setState(() {
+        isLoading = false;
+      });
+      return;
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse(apiUrl),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      print('Fetch Response status: ${response.statusCode}');
+      print('Fetch Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          students = data
+              .map((student) => {
+                    'id': student['_id'] ?? '',
+                    'name':
+                        '${student['fName'] ?? ''} ${student['lName'] ?? ''}'
+                            .trim(),
+                    'email': student['email'] ?? 'No email',
+                    'enrollNo':
+                        student['enrollNo']?.toString() ?? 'No enrollNo',
+                    'year': student['year']?.toString() ?? 'No year',
+                    'section': student['section'] ?? 'No section',
+                    'fatherName': student['fatherName'] ?? 'No father name',
+                    'motherName': student['motherName'] ?? 'No mother name',
+                    'dob': student['dob'] ?? 'No date of birth',
+                  })
+              .toList();
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load students')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _deleteStudent(int index) async {
+    final student = students[index];
+    final studentId = student['id'];
+    final token = await _getToken();
+
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No token found')),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.delete(
+        Uri.parse('$apiUrl/$studentId'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      print('Delete Response status: ${response.statusCode}');
+      print('Delete Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        setState(() {
+          students.removeAt(index);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Student deleted successfully')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete student')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  void _showStudentDetails(Map<String, dynamic> student) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Student Details'),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+              Text('Name: ${student['name']}',
+                  style: Theme.of(context).textTheme.titleMedium),
+              Text('Email: ${student['email']}',
+                  style: Theme.of(context).textTheme.bodyLarge),
+              Text('Enroll No: ${student['enrollNo']}',
+                  style: Theme.of(context).textTheme.bodyLarge),
+              Text('Year: ${student['year']}',
+                  style: Theme.of(context).textTheme.bodyLarge),
+              Text('Section: ${student['section']}',
+                  style: Theme.of(context).textTheme.bodyLarge),
+              Text('Father\'s Name: ${student['fatherName']}',
+                  style: Theme.of(context).textTheme.bodyLarge),
+              Text('Mother\'s Name: ${student['motherName']}',
+                  style: Theme.of(context).textTheme.bodyLarge),
+              Text('Date of Birth: ${student['dob']}',
+                  style: Theme.of(context).textTheme.bodyLarge),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _addStudent(Map<String, dynamic> studentData) async {
+    final token = await _getToken();
+
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No token found')),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse(addStudentApiUrl),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(studentData),
+      );
+
+      print('Add Student Response status: ${response.statusCode}');
+      print('Add Student Response body: ${response.body}');
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Student added successfully')),
+        );
+        _fetchStudents(); // Refresh the student list
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to add student')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  void _showAddStudentDialog() {
+    final _formKey = GlobalKey<FormState>();
+    final _fNameController = TextEditingController();
+    final _lNameController = TextEditingController();
+    final _emailController = TextEditingController();
+    final _enrollNoController = TextEditingController();
+    final _yearController = TextEditingController();
+    final _sectionController = TextEditingController();
+    final _fatherNameController = TextEditingController();
+    final _motherNameController = TextEditingController();
+    final _dobController = TextEditingController();
+    final _rollNoController = TextEditingController();
+    final _genderController = TextEditingController();
+    final _parentsContactController = TextEditingController();
+    final _passwordController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add New Student'),
+        content: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                TextFormField(
+                  controller: _fNameController,
+                  decoration: InputDecoration(
+                    labelText: 'First Name',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the first name';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: _lNameController,
+                  decoration: InputDecoration(
+                    labelText: 'Last Name',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the email';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: _enrollNoController,
+                  decoration: InputDecoration(
+                    labelText: 'Enroll No',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: _yearController,
+                  decoration: InputDecoration(
+                    labelText: 'Year',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: _sectionController,
+                  decoration: InputDecoration(
+                    labelText: 'Section',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: _fatherNameController,
+                  decoration: InputDecoration(
+                    labelText: 'Father\'s Name',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: _motherNameController,
+                  decoration: InputDecoration(
+                    labelText: 'Mother\'s Name',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: _dobController,
+                  decoration: InputDecoration(
+                    labelText: 'Date of Birth',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: _rollNoController,
+                  decoration: InputDecoration(
+                    labelText: 'Roll No',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: _genderController,
+                  decoration: InputDecoration(
+                    labelText: 'Gender',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: _parentsContactController,
+                  decoration: InputDecoration(
+                    labelText: 'Parents Contact',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    border: OutlineInputBorder(),
+                  ),
+                  obscureText: true,
+                ),
+                SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState?.validate() ?? false) {
+                      final studentData = {
+                        'fName': _fNameController.text,
+                        'lName': _lNameController.text,
+                        'email': _emailController.text,
+                        'enrollNo': _enrollNoController.text,
+                        'year': _yearController.text,
+                        'section': _sectionController.text,
+                        'fatherName': _fatherNameController.text,
+                        'motherName': _motherNameController.text,
+                        'dob': _dobController.text,
+                        'rollNo': _rollNoController.text,
+                        'gender': _genderController.text,
+                        'parentsContact': _parentsContactController.text,
+                        'password': _passwordController.text,
+                      };
+
+                      _addStudent(studentData);
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  child: Text('Add Student'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 225, 244, 248),
-        title: const Text(
-          'Manage Students',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Manage Students'),
+        backgroundColor: Color(0xFFE0F7FA),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () {
-              // Add new student functionality
-              showDialog(
-                context: context,
-                builder: (context) => AddStudentDialog(),
-              );
-            },
+            onPressed: _showAddStudentDialog,
           ),
         ],
-        elevation: 0,
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFE0F7FA),
-              Color(0xFFE0F2F1),
-            ],
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ListView.builder(
-            itemCount: students.length,
-            itemBuilder: (context, index) {
-              final student = students[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 8.0),
-                child: ListTile(
-                  title: Text(student['name'] ?? 'No name'),
-                  subtitle: Text(student['email'] ?? 'No email'),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () {
-                      // Delete student functionality
-                      _confirmDelete(context, index);
-                    },
+      backgroundColor: Color(0xFFE0F7FA),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: students.length,
+              itemBuilder: (context, index) {
+                final student = students[index];
+                return Card(
+                  elevation: 2,
+                  margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  child: ListTile(
+                    contentPadding: EdgeInsets.all(12),
+                    title: Text(student['name'],
+                        style: Theme.of(context).textTheme.titleLarge),
+                    subtitle: Text('Enroll No: ${student['enrollNo']}'),
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => _deleteStudent(index),
+                    ),
+                    onTap: () => _showStudentDetails(student),
                   ),
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _confirmDelete(BuildContext context, int index) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Deletion'),
-        content: const Text('Are you sure you want to delete this student?'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              // Remove the student from the list
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              // Remove the student from the list
-              Navigator.of(context).pop();
-            },
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class AddStudentDialog extends StatefulWidget {
-  @override
-  _AddStudentDialogState createState() => _AddStudentDialogState();
-}
-
-class _AddStudentDialogState extends State<AddStudentDialog> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Add Student'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _nameController,
-            decoration: const InputDecoration(labelText: 'Name'),
-          ),
-          TextField(
-            controller: _emailController,
-            decoration: const InputDecoration(labelText: 'Email'),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            // Add new student functionality
-            Navigator.of(context).pop();
-          },
-          child: const Text('Add'),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          child: const Text('Cancel'),
-        ),
-      ],
+                );
+              },
+            ),
     );
   }
 }

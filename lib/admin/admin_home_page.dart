@@ -1,10 +1,8 @@
-import 'package:diet_portal/admin/faculty_add_and_delete_faculty.dart';
 import 'package:flutter/material.dart';
 import 'admin_personal_info.dart';
+import 'faculty_add_and_delete_faculty.dart';
 import 'student_add_and_delete.dart'; // Import the Student management file
-import 'parent_add_and_delete.dart';  // Import the Parent management file
 import 'course_add_and_delete.dart';  // Import the Course management file
-import 'notice_publish.dart'; // Import the Notice publishing file
 
 class AdminHomePage extends StatelessWidget {
   final Map<String, dynamic> adminInfo;
@@ -23,7 +21,12 @@ class AdminHomePage extends StatelessWidget {
           'Welcome, Admin',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
-        automaticallyImplyLeading: false, // Disables the back button
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, '/'); // Navigate to the login page
+          },
+        ),
         elevation: 0,
       ),
       body: Container(
@@ -93,18 +96,6 @@ class AdminHomePage extends StatelessWidget {
                     ),
                     buildTile(
                       context,
-                      'Parent',
-                      Icons.family_restroom,
-                      Colors.teal,
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ParentAddAndDeletePage(),
-                        ),
-                      ),
-                    ),
-                    buildTile(
-                      context,
                       'Course',
                       Icons.book,
                       Colors.purple,
@@ -112,18 +103,6 @@ class AdminHomePage extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => CourseAddAndDeletePage(),
-                        ),
-                      ),
-                    ),
-                    buildTile(
-                      context,
-                      'Notice',
-                      Icons.notifications,
-                      Colors.red,
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => NoticePublishPage(),
                         ),
                       ),
                     ),
