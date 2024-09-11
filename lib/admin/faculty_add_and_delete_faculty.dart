@@ -1,194 +1,293 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class Faculty {
-  final String id;
-  final String name;
-  final String email;
-
-  Faculty({
-    required this.id,
-    required this.name,
-    required this.email,
-  });
-
-  // Factory constructor to create a Faculty from JSON
-  factory Faculty.fromJson(Map<String, dynamic> json) {
-    return Faculty(
-      id: json['id'].toString(),
-      name: json['name'],
-      email: json['email'],
-    );
-  }
-}
-
 class FacultyAddAndDeletePage extends StatefulWidget {
-  const FacultyAddAndDeletePage({super.key});
-
   @override
   _FacultyAddAndDeletePageState createState() => _FacultyAddAndDeletePageState();
 }
 
 class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
-  List<Faculty> _faculties = [];
+  List<Map<String, dynamic>> facultyList = [];
   bool isLoading = true;
-  String? _token;
+  bool isAdding = false;
+
+  final String apiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/faculty/show-faculty';
+  final String addFacultyApiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/faculty/add-faculty';
+  final String deleteFacultyApiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/faculty/remove-faculty';
+
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _roleController = TextEditingController();
+  final TextEditingController _coursesTeachingController = TextEditingController();
+  final TextEditingController _classesTeachingController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _getTokenAndFetchFaculties();
+    _fetchFaculty();
   }
 
-  Future<void> _getTokenAndFetchFaculties() async {
+  Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    _token = prefs.getString('token');  // Retrieve the token
+    return prefs.getString('token');
+  }
 
-    if (_token != null) {
-      fetchFaculties();
-    } else {
-      print('Token not found');
+  Future<void> _fetchFaculty() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    final token = await _getToken();
+
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No token found')),
+      );
       setState(() {
         isLoading = false;
       });
+      return;
     }
-  }
 
-  Future<void> fetchFaculties() async {
-    final url = 'https://student-attendance-system-ckb1.onrender.com/api/faculty/show-faculty?role=admin';
     try {
-      final response = await http.get(Uri.parse(url), headers: {
-        'Authorization': 'Bearer $_token',
-      });
-
-      print('API Response Status: ${response.statusCode}');
-      print('API Response Body: ${response.body}');
+      final response = await http.get(
+        Uri.parse(apiUrl),
+        headers: {'Authorization': 'Bearer $token'},
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          _faculties = data.map((facultyJson) => Faculty.fromJson(facultyJson)).toList();
-          isLoading = false;
+          facultyList = data.map((faculty) => {
+                'id': faculty['_id'] ?? '',
+                'name': faculty['name'] ?? 'No name',
+                'email': faculty['email'] ?? 'No email',
+                'role': faculty['role'] ?? 'No role',
+                'coursesTeaching': faculty['coursesTeaching'] ?? [],
+                'classesTeaching': faculty['classesTeaching'] ?? [],
+              }).toList();
         });
-      } else if (response.statusCode == 404) {
-        print('Faculties not found! Please check the endpoint and parameters.');
-        setState(() {
-          isLoading = false;
-        });
+      } else if (response.statusCode == 403) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Session expired, please log in again.')),
+        );
       } else {
-        print('Failed to load faculties. Status Code: ${response.statusCode}');
-        setState(() {
-          isLoading = false;
-        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load faculty')),
+        );
       }
-    } catch (error) {
+      print('API Response: ${response.body}');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+      print('Error fetching faculty: $e');
+    } finally {
       setState(() {
         isLoading = false;
       });
-      print('Error: $error');
-    }
-  }
-
-  Future<void> _addFaculty(String name, String email) async {
-    final url = 'https://student-attendance-system-ckb1.onrender.com/api/faculty/add-faculty'; // Replace with the actual endpoint
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {
-          'Authorization': 'Bearer $_token',
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode({
-          'name': name,
-          'email': email,
-          'role': 'admin',
-        }),
-      );
-
-      print('Add Faculty API Response Status: ${response.statusCode}');
-      print('Add Faculty API Response Body: ${response.body}');
-
-      if (response.statusCode == 201) {
-        print('Faculty added successfully');
-        fetchFaculties(); // Refresh the list after adding
-      } else {
-        print('Failed to add faculty');
-      }
-    } catch (error) {
-      print('Error: $error');
     }
   }
 
   Future<void> _deleteFaculty(String id) async {
-    final url = 'https://student-attendance-system-ckb1.onrender.com/api/faculty/delete-faculty/$id'; // Replace with the actual endpoint
+    final token = await _getToken();
+
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No token found')),
+      );
+      return;
+    }
+
     try {
       final response = await http.delete(
-        Uri.parse(url),
-        headers: {
-          'Authorization': 'Bearer $_token',
-        },
+        Uri.parse('$deleteFacultyApiUrl/$id'),
+        headers: {'Authorization': 'Bearer $token'},
       );
 
-      print('Delete Faculty API Response Status: ${response.statusCode}');
-      print('Delete Faculty API Response Body: ${response.body}');
-
       if (response.statusCode == 200) {
-        print('Faculty deleted successfully');
         setState(() {
-          _faculties.removeWhere((faculty) => faculty.id == id);
+          facultyList.removeWhere((faculty) => faculty['id'] == id);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Faculty deleted successfully')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to delete faculty')),
+        );
+      }
+      print('Delete Response: ${response.body}');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+      print('Error deleting faculty: $e');
+    }
+  }
+
+  Future<void> _addFaculty() async {
+    final token = await _getToken();
+    final name = _nameController.text;
+    final email = _emailController.text;
+    final password = _passwordController.text;
+    final role = _roleController.text;
+    final coursesTeaching = json.decode(_coursesTeachingController.text);
+    final classesTeaching = json.decode(_classesTeachingController.text);
+
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No token found')),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse(addFacultyApiUrl),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'name': name,
+          'email': email,
+          'password': password,
+          'role': role,
+          'coursesTeaching': coursesTeaching,
+          'classesTeaching': classesTeaching,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        final newFaculty = json.decode(response.body);
+        setState(() {
+          facultyList.add({
+            'id': newFaculty['_id'],
+            'name': newFaculty['name'],
+            'email': newFaculty['email'],
+            'role': newFaculty['role'],
+            'coursesTeaching': newFaculty['coursesTeaching'],
+            'classesTeaching': newFaculty['classesTeaching'],
+          });
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Faculty added successfully')),
+        );
+        setState(() {
+          isAdding = false;
         });
       } else {
-        print('Failed to delete faculty');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to add faculty')),
+        );
       }
-    } catch (error) {
-      print('Error: $error');
+      print('Add Response: ${response.body}');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+      print('Error adding faculty: $e');
     }
   }
 
   void _showAddFacultyDialog() {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        final TextEditingController nameController = TextEditingController();
-        final TextEditingController emailController = TextEditingController();
-
-        return AlertDialog(
-          title: const Text('Add New Faculty'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
+      builder: (context) => AlertDialog(
+        title: const Text('Add Faculty'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextField(
-                controller: nameController,
+                controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Name'),
               ),
               TextField(
-                controller: emailController,
+                controller: _emailController,
                 decoration: const InputDecoration(labelText: 'Email'),
+              ),
+              TextField(
+                controller: _passwordController,
+                decoration: const InputDecoration(labelText: 'Password'),
+                obscureText: true,
+              ),
+              TextField(
+                controller: _roleController,
+                decoration: const InputDecoration(labelText: 'Role'),
+              ),
+              TextField(
+                controller: _coursesTeachingController,
+                decoration: const InputDecoration(labelText: 'Courses Teaching (JSON array)'),
+                keyboardType: TextInputType.multiline,
+                maxLines: null,
+              ),
+              TextField(
+                controller: _classesTeachingController,
+                decoration: const InputDecoration(labelText: 'Classes Teaching (JSON array)'),
+                keyboardType: TextInputType.multiline,
+                maxLines: null,
               ),
             ],
           ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Add'),
-              onPressed: () {
-                final String name = nameController.text;
-                final String email = emailController.text;
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              _addFaculty();
+              Navigator.of(context).pop();
+            },
+            child: const Text('Add'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
 
-                Navigator.of(context).pop();
-                _addFaculty(name, email);
-              },
-            ),
-          ],
-        );
-      },
+  void _showFacultyDetailsDialog(Map<String, dynamic> faculty) {
+    final List<dynamic> classesTeaching = faculty['classesTeaching'];
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(faculty['name']),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Email: ${faculty['email']}'),
+              Text('Role: ${faculty['role']}'),
+              const SizedBox(height: 10),
+              Text('Courses Teaching: ${faculty['coursesTeaching'].join(', ')}'),
+              const SizedBox(height: 10),
+              Text('Classes Teaching:'),
+              ...classesTeaching.map((classItem) {
+                return Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Text('Year ${classItem['year']}, Sections: ${classItem['sections'].join(', ')}'),
+                );
+              }).toList(),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -196,59 +295,38 @@ class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 225, 244, 248),
-        title: const Text(
-          'Manage Faculties',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-        elevation: 0,
+        title: const Text('Manage Faculty'),
+        backgroundColor: const Color(0xFFE0F7FA),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: _showAddFacultyDialog,
+          ),
+        ],
       ),
+      backgroundColor: const Color(0xFFE0F7FA),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xFFE0F7FA),
-                    Color(0xFFE0F2F1),
-                  ],
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    ElevatedButton(
-                      onPressed: _showAddFacultyDialog,
-                      child: const Text('Add New Faculty'),
+          : ListView.builder(
+              itemCount: facultyList.length,
+              itemBuilder: (context, index) {
+                final faculty = facultyList[index];
+                return Card(
+                  elevation: 2,
+                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  child: ListTile(
+                    title: Text(faculty['name']),
+                    subtitle: Text('Email: ${faculty['email']}\nRole: ${faculty['role']}'),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        _deleteFaculty(faculty['id']);
+                      },
                     ),
-                    const SizedBox(height: 16.0),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: _faculties.length,
-                        itemBuilder: (context, index) {
-                          final faculty = _faculties[index];
-                          return Card(
-                            margin: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: ListTile(
-                              title: Text(faculty.name),
-                              subtitle: Text(faculty.email),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () {
-                                  _deleteFaculty(faculty.id);
-                                },
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                    onTap: () => _showFacultyDetailsDialog(faculty),
+                  ),
+                );
+              },
             ),
     );
   }
