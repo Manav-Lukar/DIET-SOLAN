@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Faculty {
   final String id;
@@ -16,7 +17,7 @@ class Faculty {
   // Factory constructor to create a Faculty from JSON
   factory Faculty.fromJson(Map<String, dynamic> json) {
     return Faculty(
-      id: json['id'].toString(),  // Convert to string if needed
+      id: json['id'].toString(),
       name: json['name'],
       email: json['email'],
     );
@@ -33,19 +34,37 @@ class FacultyAddAndDeletePage extends StatefulWidget {
 class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
   List<Faculty> _faculties = [];
   bool isLoading = true;
+  String? _token;
 
   @override
   void initState() {
     super.initState();
-    fetchFaculties();
+    _getTokenAndFetchFaculties();
+  }
+
+  Future<void> _getTokenAndFetchFaculties() async {
+    final prefs = await SharedPreferences.getInstance();
+    _token = prefs.getString('token');  // Retrieve the token
+
+    if (_token != null) {
+      fetchFaculties();
+    } else {
+      print('Token not found');
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   Future<void> fetchFaculties() async {
-    final url = 'https://student-attendance-system-ckb1.onrender.com/api/faculty/show-faculty?role=Faculty';
+    final url = 'https://student-attendance-system-ckb1.onrender.com/api/faculty/show-faculty?role=admin';
     try {
       final response = await http.get(Uri.parse(url), headers: {
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmYWN1bHR5SWQiOiI2NjdlNWYzNTBmMjZkYmFjYTU2MjZlZWEiLCJlbWFpbCI6InNodWJoYW01ODE4OEBnbWFpbC5jb20iLCJyb2xlIjoiQWRtaW4iLCJpYXQiOjE3MjQ4MjA0MTQsImV4cCI6MTcyNDkwNjgxNH0.eoV6nlJSL-DpWrrWvD9J4dnUTyjtLI85Us3oalfKB-8', // Replace with your token
+        'Authorization': 'Bearer $_token',
       });
+
+      print('API Response Status: ${response.statusCode}');
+      print('API Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -53,11 +72,16 @@ class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
           _faculties = data.map((facultyJson) => Faculty.fromJson(facultyJson)).toList();
           isLoading = false;
         });
-      } else {
+      } else if (response.statusCode == 404) {
+        print('Faculties not found! Please check the endpoint and parameters.');
         setState(() {
           isLoading = false;
         });
-        print('Failed to load faculties');
+      } else {
+        print('Failed to load faculties. Status Code: ${response.statusCode}');
+        setState(() {
+          isLoading = false;
+        });
       }
     } catch (error) {
       setState(() {
@@ -67,7 +91,63 @@ class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
     }
   }
 
-  void _addFaculty() {
+  Future<void> _addFaculty(String name, String email) async {
+    final url = 'https://student-attendance-system-ckb1.onrender.com/api/faculty/add-faculty'; // Replace with the actual endpoint
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $_token',
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'role': 'admin',
+        }),
+      );
+
+      print('Add Faculty API Response Status: ${response.statusCode}');
+      print('Add Faculty API Response Body: ${response.body}');
+
+      if (response.statusCode == 201) {
+        print('Faculty added successfully');
+        fetchFaculties(); // Refresh the list after adding
+      } else {
+        print('Failed to add faculty');
+      }
+    } catch (error) {
+      print('Error: $error');
+    }
+  }
+
+  Future<void> _deleteFaculty(String id) async {
+    final url = 'https://student-attendance-system-ckb1.onrender.com/api/faculty/delete-faculty/$id'; // Replace with the actual endpoint
+    try {
+      final response = await http.delete(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $_token',
+        },
+      );
+
+      print('Delete Faculty API Response Status: ${response.statusCode}');
+      print('Delete Faculty API Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        print('Faculty deleted successfully');
+        setState(() {
+          _faculties.removeWhere((faculty) => faculty.id == id);
+        });
+      } else {
+        print('Failed to delete faculty');
+      }
+    } catch (error) {
+      print('Error: $error');
+    }
+  }
+
+  void _showAddFacultyDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -102,27 +182,14 @@ class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
                 final String name = nameController.text;
                 final String email = emailController.text;
 
-                setState(() {
-                  _faculties.add(Faculty(
-                    id: (_faculties.length + 1).toString(),
-                    name: name,
-                    email: email,
-                  ));
-                });
-
                 Navigator.of(context).pop();
+                _addFaculty(name, email);
               },
             ),
           ],
         );
       },
     );
-  }
-
-  void _deleteFaculty(String id) {
-    setState(() {
-      _faculties.removeWhere((faculty) => faculty.id == id);
-    });
   }
 
   @override
@@ -154,7 +221,7 @@ class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
                 child: Column(
                   children: [
                     ElevatedButton(
-                      onPressed: _addFaculty,
+                      onPressed: _showAddFacultyDialog,
                       child: const Text('Add New Faculty'),
                     ),
                     const SizedBox(height: 16.0),

@@ -98,7 +98,6 @@ Future<void> _loginUser(BuildContext context) async {
 
     final data = jsonDecode(response.body);
 
-    // Determine the key based on the role
     String detailsKey = successRole == 'Admin' ? 'facultyDetails' : '${successRole.toLowerCase()}Details';
 
     if (response.statusCode == 200) {
@@ -155,22 +154,21 @@ Future<void> _loginUser(BuildContext context) async {
           }
 
           Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => StudentHomePage(
-                username: _usernameController.text,
-                notices: const [], // Adjust as per your app logic
-                subjectsData: const [], // Adjust as per your app logic
-                studentDetails: userDetails,
-                studentName: '${userDetails['fName']} ${userDetails['lName']}',
-                rollNo: userDetails['rollNo'].toString(),
-                year: userDetails['year'].toString(),
-                section: userDetails['section'],
-                token: token ?? '', 
-                role: '',
-              ),
-            ),
-          );
+  context,
+  MaterialPageRoute(
+    builder: (context) => StudentHomePage(
+      username: _usernameController.text,
+      notices: const [], // Adjust as needed
+      studentDetails: userDetails,
+      studentName: '${userDetails['fName']} ${userDetails['lName']}',
+      rollNo: userDetails['rollNo'].toString(),
+      year: userDetails['year'].toString(),
+      section: userDetails['section'],
+      token: token ?? '', subjectsData: [], role: '',
+    ),
+  ),
+);
+
         }
       } else {
         setState(() {

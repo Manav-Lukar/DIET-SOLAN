@@ -116,7 +116,7 @@ class StudentHomePage extends StatelessWidget {
                             studentDetails: studentDetails,
                             studentName: studentName,
                             rollNo: rollNo,
-                            subjects: const [],
+                            // subjects: const [],
                             token: token,
                           ),
                         ),

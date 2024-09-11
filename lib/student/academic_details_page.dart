@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AcademicDetailsPage extends StatefulWidget {
@@ -14,9 +16,7 @@ class AcademicDetailsPage extends StatefulWidget {
     required this.subjectsData,
     required this.studentDetails,
     required this.studentName,
-    required this.rollNo,
-    required List<String> subjects,
-    required String token,
+    required this.rollNo, required String token,
   });
 
   @override
@@ -26,33 +26,7 @@ class AcademicDetailsPage extends StatefulWidget {
 class _AcademicDetailsPageState extends State<AcademicDetailsPage> {
   List<String> _courses = [];
   String? _token;
-
-  // Course data mapping
-  final Map<int, String> _courseData = {
-    101: 'Education Technology',
-    102: 'Psychology',
-    103: 'Maths',
-    104: 'Education 102\'',
-    105: 'EVS',
-    106: 'Hindi',
-    107: 'Work Education',
-    108: 'Physical Education',
-    109: 'English',
-    110: 'Fine Art',
-    111: 'Music',
-    112: 'Education103\'',
-    201: 'Psychology',
-    202: 'English',
-    203: 'Maths',
-    204: 'Hindi',
-    205: 'Fine Arts',
-    206: 'Music',
-    207: 'Physical Education',
-    208: 'Social Science',
-    209: 'Education',
-    210: 'Planning and Management',
-    211: 'Science Education',
-  };
+  final String coursesApiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/course/show-courses-students';
 
   @override
   void initState() {
@@ -62,29 +36,54 @@ class _AcademicDetailsPageState extends State<AcademicDetailsPage> {
 
   Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
-
-    // Fetch the saved token
     _token = prefs.getString('token');
+    await _fetchCourses();
+  }
 
-    // Fetch the saved course IDs and decode them into a List<int>
-    final List<String>? savedCourses = prefs.getStringList('courses');
+  Future<void> _fetchCourses() async {
+    if (_token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No token found')),
+      );
+      return;
+    }
 
-    if (savedCourses != null) {
-      // Convert course IDs to integers and then fetch course names
-      final List<String> courseNames = savedCourses.map((courseIdStr) {
-        final int courseId = int.tryParse(courseIdStr) ?? 0;
-        return _courseData[courseId] ?? 'Unknown Course';
-      }).toList();
+    try {
+      final response = await http.post(
+        Uri.parse(coursesApiUrl),
+        headers: {
+          'Authorization': 'Bearer $_token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'courses': widget.subjectsData}),
+      );
 
-      setState(() {
-        _courses = courseNames;
-      });
+      print('API Response Status: ${response.statusCode}');
+      print('API Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        final List<String> courseNames = data.map((course) {
+          return course['courseName']?.toString() ?? 'Unknown Course';
+        }).toList();
+
+        setState(() {
+          _courses = courseNames;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to fetch courses')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Extract details from the API response
     final String name = widget.studentDetails['fName'] ?? 'N/A';
     final String rollNo = widget.studentDetails['rollNo']?.toString() ?? 'N/A';
     final String year = widget.studentDetails['year']?.toString() ?? 'N/A';

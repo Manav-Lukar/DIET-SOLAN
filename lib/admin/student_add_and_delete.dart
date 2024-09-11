@@ -37,7 +37,7 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
 
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No token found')),
+        const SnackBar(content: Text('No token found')),
       );
       setState(() {
         isLoading = false;
@@ -76,7 +76,7 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load students')),
+          const SnackBar(content: Text('Failed to load students')),
         );
       }
     } catch (e) {
@@ -97,7 +97,7 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
 
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No token found')),
+        const SnackBar(content: Text('No token found')),
       );
       return;
     }
@@ -116,11 +116,11 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
           students.removeAt(index);
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Student deleted successfully')),
+          const SnackBar(content: Text('Student deleted successfully')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete student')),
+          const SnackBar(content: Text('Failed to delete student')),
         );
       }
     } catch (e) {
@@ -134,7 +134,7 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Student Details'),
+        title: const Text('Student Details'),
         content: SingleChildScrollView(
           child: ListBody(
             children: <Widget>[
@@ -174,7 +174,7 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
 
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No token found')),
+        const SnackBar(content: Text('No token found')),
       );
       return;
     }
@@ -194,12 +194,12 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
 
       if (response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Student added successfully')),
+          const SnackBar(content: Text('Student added successfully')),
         );
         _fetchStudents(); // Refresh the student list
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to add student')),
+          const SnackBar(content: Text('Failed to add student')),
         );
       }
     } catch (e) {
@@ -237,7 +237,7 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
               children: <Widget>[
                 TextFormField(
                   controller: _fNameController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'First Name',
                     border: OutlineInputBorder(),
                   ),
@@ -248,18 +248,18 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
                     return null;
                   },
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _lNameController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Last Name',
                     border: OutlineInputBorder(),
                   ),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _emailController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Email',
                     border: OutlineInputBorder(),
                   ),
@@ -271,90 +271,90 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
                     return null;
                   },
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _enrollNoController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Enroll No',
                     border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _yearController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Year',
                     border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _sectionController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Section',
                     border: OutlineInputBorder(),
                   ),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _fatherNameController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Father\'s Name',
                     border: OutlineInputBorder(),
                   ),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _motherNameController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Mother\'s Name',
                     border: OutlineInputBorder(),
                   ),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _dobController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Date of Birth',
                     border: OutlineInputBorder(),
                   ),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _rollNoController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Roll No',
                     border: OutlineInputBorder(),
                   ),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _genderController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Gender',
                     border: OutlineInputBorder(),
                   ),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _parentsContactController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Parents Contact',
                     border: OutlineInputBorder(),
                   ),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _passwordController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Password',
                     border: OutlineInputBorder(),
                   ),
                   obscureText: true,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState?.validate() ?? false) {
@@ -378,7 +378,7 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
                       Navigator.of(context).pop();
                     }
                   },
-                  child: Text('Add Student'),
+                  child: const Text('Add Student'),
                 ),
               ],
             ),
@@ -401,7 +401,7 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Manage Students'),
-        backgroundColor: Color(0xFFE0F7FA),
+        backgroundColor: const Color(0xFFE0F7FA),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -409,23 +409,23 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
           ),
         ],
       ),
-      backgroundColor: Color(0xFFE0F7FA),
+      backgroundColor: const Color(0xFFE0F7FA),
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
               itemCount: students.length,
               itemBuilder: (context, index) {
                 final student = students[index];
                 return Card(
                   elevation: 2,
-                  margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   child: ListTile(
-                    contentPadding: EdgeInsets.all(12),
+                    contentPadding: const EdgeInsets.all(12),
                     title: Text(student['name'],
                         style: Theme.of(context).textTheme.titleLarge),
                     subtitle: Text('Enroll No: ${student['enrollNo']}'),
                     trailing: IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
+                      icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () => _deleteStudent(index),
                     ),
                     onTap: () => _showStudentDetails(student),
