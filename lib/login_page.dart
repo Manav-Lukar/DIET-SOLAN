@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:diet_portal/parent/parent_home_page.dart';
 import 'package:diet_portal/student/student_home_page.dart';
 import 'package:diet_portal/faculty/faculty_home_page.dart';
 
