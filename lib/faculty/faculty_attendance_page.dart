@@ -32,29 +32,29 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
   String? _selectedSection;
 
   final List<Map<String, dynamic>> _courses = [
-    { 'id': 101, 'name': 'Education Technology' },
-    { 'id': 102, 'name': 'Psychology' },
-    { 'id': 103, 'name': 'Maths' },
-    { 'id': 104, 'name': 'Education 102' },
-    { 'id': 105, 'name': 'EVS' },
-    { 'id': 106, 'name': 'Hindi' },
-    { 'id': 107, 'name': 'Work Education' },
-    { 'id': 108, 'name': 'Physical Education' },
-    { 'id': 109, 'name': 'English' },
-    { 'id': 110, 'name': 'Fine Art' },
-    { 'id': 111, 'name': 'Music' },
-    { 'id': 112, 'name': 'Education103' },
-    { 'id': 201, 'name': 'Psychology' },
-    { 'id': 202, 'name': 'English' },
-    { 'id': 203, 'name': 'Maths' },
-    { 'id': 204, 'name': 'Hindi' },
-    { 'id': 205, 'name': 'Fine Arts' },
-    { 'id': 206, 'name': 'Music' },
-    { 'id': 207, 'name': 'Physical Education' },
-    { 'id': 208, 'name': 'Social Science' },
-    { 'id': 209, 'name': 'Education' },
-    { 'id': 210, 'name': 'Planning and Management' },
-    { 'id': 211, 'name': 'Science Education' },
+    {'id': 101, 'name': 'Education Technology'},
+    {'id': 102, 'name': 'Psychology'},
+    {'id': 103, 'name': 'Maths'},
+    {'id': 104, 'name': 'Education 102'},
+    {'id': 105, 'name': 'EVS'},
+    {'id': 106, 'name': 'Hindi'},
+    {'id': 107, 'name': 'Work Education'},
+    {'id': 108, 'name': 'Physical Education'},
+    {'id': 109, 'name': 'English'},
+    {'id': 110, 'name': 'Fine Art'},
+    {'id': 111, 'name': 'Music'},
+    {'id': 112, 'name': 'Education103'},
+    {'id': 201, 'name': 'Psychology'},
+    {'id': 202, 'name': 'English'},
+    {'id': 203, 'name': 'Maths'},
+    {'id': 204, 'name': 'Hindi'},
+    {'id': 205, 'name': 'Fine Arts'},
+    {'id': 206, 'name': 'Music'},
+    {'id': 207, 'name': 'Physical Education'},
+    {'id': 208, 'name': 'Social Science'},
+    {'id': 209, 'name': 'Education'},
+    {'id': 210, 'name': 'Planning and Management'},
+    {'id': 211, 'name': 'Science Education'},
   ];
 
   @override
@@ -87,7 +87,8 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://student-attendance-system-ckb1.onrender.com/api/attendance/record-new'),
+        Uri.parse(
+            'https://student-attendance-system-ckb1.onrender.com/api/attendance/record-new'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'Content-Type': 'application/json',
@@ -103,7 +104,8 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
         });
       } else {
         setState(() {
-          _message = 'Failed to record attendance. Status code: ${response.statusCode}, Error: ${response.body}';
+          _message =
+              'Failed to record attendance. Status code: ${response.statusCode}, Error: ${response.body}';
         });
       }
     } catch (e) {
@@ -126,7 +128,8 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
   }
 
   void _addStudentRecords() {
-    final enrollments = _studentsEnrollController.text.split(',').map((e) => e.trim()).toList();
+    final enrollments =
+        _studentsEnrollController.text.split(',').map((e) => e.trim()).toList();
 
     if (enrollments.isNotEmpty) {
       setState(() {
@@ -159,7 +162,7 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Attendance Management'),
-        backgroundColor: Colors.teal,
+        backgroundColor: Colors.teal[50],
       ),
       backgroundColor: Colors.teal[50],
       body: Padding(
@@ -197,7 +200,8 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
                 ),
               ),
 
-              _buildTextField(_timeController, 'Time (HH:MM AM/PM)', TextInputType.datetime),
+              _buildTextField(_timeController, 'Time (HH:MM AM/PM)',
+                  TextInputType.datetime),
 
               // Dropdown for selecting year
               Padding(
@@ -256,7 +260,8 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
               SizedBox(height: 16),
 
               _buildSectionTitle('Add Student Records'),
-              _buildTextField(_studentsEnrollController, 'Enter Enroll No (comma separated)', TextInputType.text),
+              _buildTextField(_studentsEnrollController,
+                  'Enter Enroll No (comma separated)', TextInputType.text),
 
               // Dropdown for selecting status
               Padding(
@@ -309,7 +314,8 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
                     ...studentRecords.map((record) {
                       return ListTile(
                         title: Text('Enroll No: ${record['enrollNo']}'),
-                        subtitle: Text('Status: ${record['status'] == 'P' ? 'Present' : record['status'] == 'A' ? 'Absent' : 'Leave'}'),
+                        subtitle: Text(
+                            'Status: ${record['status'] == 'P' ? 'Present' : record['status'] == 'A' ? 'Absent' : 'Leave'}'),
                       );
                     }).toList(),
                   ],
@@ -324,7 +330,8 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.white,
                         backgroundColor: Colors.blue,
-                        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                        padding:
+                            EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -339,7 +346,9 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
                 Text(
                   _message,
                   style: TextStyle(
-                    color: _message.contains('success') ? Colors.green : Colors.red,
+                    color: _message.contains('success')
+                        ? Colors.green
+                        : Colors.red,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -350,7 +359,8 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, TextInputType keyboardType) {
+  Widget _buildTextField(TextEditingController controller, String label,
+      TextInputType keyboardType) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
