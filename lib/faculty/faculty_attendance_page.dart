@@ -19,58 +19,49 @@ class FacultyAttendancePage extends StatefulWidget {
 }
 
 class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
-  List<dynamic> attendanceData = [];
   List<Map<String, dynamic>> studentRecords = [];
-  bool isLoading = true;
-  String errorMessage = '';
   bool _isSubmitting = false;
   String _message = '';
 
-  final _courseIdController = TextEditingController();
   final _timeController = TextEditingController();
-  final _yearController = TextEditingController();
-  final _sectionController = TextEditingController();
-  final _enrollNoController = TextEditingController();
+  final _studentsEnrollController = TextEditingController();
+
   String _status = 'P'; // Default to Present
+  int? _selectedCourseId;
+  int? _selectedYear;
+  String? _selectedSection;
+
+  final List<Map<String, dynamic>> _courses = [
+    { 'id': 101, 'name': 'Education Technology' },
+    { 'id': 102, 'name': 'Psychology' },
+    { 'id': 103, 'name': 'Maths' },
+    { 'id': 104, 'name': 'Education 102' },
+    { 'id': 105, 'name': 'EVS' },
+    { 'id': 106, 'name': 'Hindi' },
+    { 'id': 107, 'name': 'Work Education' },
+    { 'id': 108, 'name': 'Physical Education' },
+    { 'id': 109, 'name': 'English' },
+    { 'id': 110, 'name': 'Fine Art' },
+    { 'id': 111, 'name': 'Music' },
+    { 'id': 112, 'name': 'Education103' },
+    { 'id': 201, 'name': 'Psychology' },
+    { 'id': 202, 'name': 'English' },
+    { 'id': 203, 'name': 'Maths' },
+    { 'id': 204, 'name': 'Hindi' },
+    { 'id': 205, 'name': 'Fine Arts' },
+    { 'id': 206, 'name': 'Music' },
+    { 'id': 207, 'name': 'Physical Education' },
+    { 'id': 208, 'name': 'Social Science' },
+    { 'id': 209, 'name': 'Education' },
+    { 'id': 210, 'name': 'Planning and Management' },
+    { 'id': 211, 'name': 'Science Education' },
+  ];
 
   @override
-  void initState() {
-    super.initState();
-    fetchAttendanceData();
-  }
-
-  Future<void> fetchAttendanceData() async {
-    setState(() {
-      isLoading = true;
-      errorMessage = '';
-    });
-
-    try {
-      final response = await http.get(
-        Uri.parse('https://student-attendance-system-ckb1.onrender.com/api/attendance/show-attendance-faculty/101/1/B'),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        setState(() {
-          attendanceData = json.decode(response.body);
-        });
-      } else {
-        setState(() {
-          errorMessage = 'Failed to load attendance data. Status code: ${response.statusCode}';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        errorMessage = 'Error fetching attendance data: ${e.toString()}';
-      });
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
+  void dispose() {
+    _timeController.dispose();
+    _studentsEnrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _submitAttendance() async {
@@ -87,10 +78,10 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
     });
 
     final Map<String, dynamic> data = {
-      'courseId': int.parse(_courseIdController.text),
+      'courseId': _selectedCourseId,
       'time': _timeController.text,
-      'year': int.parse(_yearController.text),
-      'section': _sectionController.text,
+      'year': _selectedYear,
+      'section': _selectedSection,
       'attendanceRecords': studentRecords,
     };
 
@@ -104,27 +95,11 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
         body: json.encode(data),
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         setState(() {
           _message = 'Attendance recorded successfully!';
-
-          // Add the submitted records to attendanceData for immediate table update
-          for (var record in studentRecords) {
-            attendanceData.add({
-              'courseId': int.parse(_courseIdController.text),
-              'enrollNo': record['enrollNo'],
-              'date': DateTime.now().toString().split(' ')[0], // Use current date
-              'status': record['status'],
-            });
-          }
-
-          // Clear the form and student records after successful submission
           studentRecords.clear();
-          _courseIdController.clear();
-          _timeController.clear();
-          _yearController.clear();
-          _sectionController.clear();
-          _status = 'P'; // Reset status to Present
+          _resetForm();
         });
       } else {
         setState(() {
@@ -143,220 +118,265 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
   }
 
   bool _validateInputs() {
-    return _courseIdController.text.isNotEmpty &&
+    return _selectedCourseId != null &&
         _timeController.text.isNotEmpty &&
-        _yearController.text.isNotEmpty &&
-        _sectionController.text.isNotEmpty &&
-        studentRecords.isNotEmpty &&
-        RegExp(r'^\d{2}:\d{2}\s*[AP]M$').hasMatch(_timeController.text);
+        _selectedYear != null &&
+        _selectedSection != null &&
+        studentRecords.isNotEmpty;
   }
 
-  void _addStudentRecord() {
-    if (_enrollNoController.text.isNotEmpty) {
+  void _addStudentRecords() {
+    final enrollments = _studentsEnrollController.text.split(',').map((e) => e.trim()).toList();
+
+    if (enrollments.isNotEmpty) {
       setState(() {
-        studentRecords.add({
-          'enrollNo': int.parse(_enrollNoController.text),
-          'status': _status,
-        });
-        _enrollNoController.clear();
-        _status = 'P'; // Reset to Present after each entry
+        studentRecords.addAll(enrollments.map((enrollment) {
+          return {
+            'enrollNo': int.parse(enrollment),
+            'status': _status,
+          };
+        }).toList());
+        _studentsEnrollController.clear();
+      });
+    } else {
+      setState(() {
+        _message = "Enrollments cannot be empty.";
       });
     }
   }
 
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'P':
-        return Colors.green; // Present
-      case 'A':
-        return Colors.red; // Absent
-      case 'L':
-        return Colors.yellow; // Leave
-      default:
-        return Colors.grey; // Unknown
-    }
+  void _resetForm() {
+    _timeController.clear();
+    _studentsEnrollController.clear();
+    _status = 'P';
+    _selectedCourseId = null;
+    _selectedYear = null;
+    _selectedSection = null;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Attendance Records - ${widget.facultyName}'),
-        backgroundColor: Colors.blueAccent,
+        title: Text('Attendance Management'),
+        backgroundColor: Colors.teal,
       ),
+      backgroundColor: Colors.teal[50],
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Attendance Form
-            Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
-                    spreadRadius: 2,
-                    blurRadius: 8,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  TextField(
-                    controller: _courseIdController,
-                    decoration: const InputDecoration(labelText: 'Course ID'),
-                    keyboardType: TextInputType.number,
-                  ),
-                  TextField(
-                    controller: _timeController,
-                    decoration: const InputDecoration(labelText: 'Time (HH:MM AM/PM)'),
-                    keyboardType: TextInputType.datetime,
-                  ),
-                  TextField(
-                    controller: _yearController,
-                    decoration: const InputDecoration(labelText: 'Year'),
-                    keyboardType: TextInputType.number,
-                  ),
-                  TextField(
-                    controller: _sectionController,
-                    decoration: const InputDecoration(labelText: 'Section'),
-                  ),
-                  const SizedBox(height: 20),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionTitle('Attendance Form'),
 
-                  // Add students section
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _enrollNoController,
-                          decoration: const InputDecoration(labelText: 'Enroll No'),
-                          keyboardType: TextInputType.number,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      DropdownButton<String>(
-                        value: _status,
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _status = newValue!;
-                          });
-                        },
-                        items: <String>['P', 'A', 'L']
-                            .map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value == 'P'
-                                ? 'Present'
-                                : value == 'A'
-                                    ? 'Absent'
-                                    : 'Leave'),
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(width: 10),
-                      ElevatedButton(
-                        onPressed: _addStudentRecord,
-                        child: const Text('Add'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Display added student records
-                  if (studentRecords.isNotEmpty)
-                    ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: studentRecords.length,
-                      itemBuilder: (context, index) {
-                        final student = studentRecords[index];
-                        return ListTile(
-                          title: Text('Enroll No: ${student['enrollNo']}'),
-                          trailing: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                            decoration: BoxDecoration(
-                              color: _getStatusColor(student['status']),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              student['status'] == 'P'
-                                  ? 'Present'
-                                  : student['status'] == 'A'
-                                      ? 'Absent'
-                                      : 'Leave',
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        );
-                      },
+              // Dropdown for selecting course
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: DropdownButtonFormField<int>(
+                  value: _selectedCourseId,
+                  hint: Text('Select Course'),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  const SizedBox(height: 20),
-
-                  ElevatedButton(
-                    onPressed: _isSubmitting ? null : _submitAttendance,
-                    child: _isSubmitting
-                        ? const CircularProgressIndicator()
-                        : const Text('Submit Attendance'),
                   ),
-                  if (_message.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: Text(
-                        _message,
-                        style: TextStyle(
-                          color: _message.contains('successfully')
-                              ? Colors.green
-                              : Colors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                ],
+                  items: _courses.map((course) {
+                    return DropdownMenuItem<int>(
+                      value: course['id'],
+                      child: Text(course['name']),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedCourseId = value;
+                    });
+                  },
+                ),
               ),
-            ),
 
-            // Attendance Records
-            if (!isLoading)
-              Expanded(
-                child: attendanceData.isEmpty
-                    ? const Center(child: Text('No attendance records available.'))
-                    : ListView.builder(
-                        itemCount: attendanceData.length,
-                        itemBuilder: (context, index) {
-                          final record = attendanceData[index];
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 10),
-                            elevation: 2,
-                            child: ListTile(
-                              title: Text('Course ID: ${record['courseId']}'),
-                              subtitle: Text('Enroll No: ${record['enrollNo']} - Date: ${record['date']} - Status: ${record['status']}'),
-                              trailing: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                                decoration: BoxDecoration(
-                                  color: _getStatusColor(record['status']),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  record['status'] == 'P'
-                                      ? 'Present'
-                                      : record['status'] == 'A'
-                                          ? 'Absent'
-                                          : 'Leave',
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
+              _buildTextField(_timeController, 'Time (HH:MM AM/PM)', TextInputType.datetime),
+
+              // Dropdown for selecting year
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: DropdownButtonFormField<int>(
+                  value: _selectedYear,
+                  hint: Text('Select Year'),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  items: [1, 2].map((year) {
+                    return DropdownMenuItem<int>(
+                      value: year,
+                      child: Text('Year $year'),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedYear = value;
+                    });
+                  },
+                ),
+              ),
+
+              // Dropdown for selecting section
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: DropdownButtonFormField<String>(
+                  value: _selectedSection,
+                  hint: Text('Select Section'),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  items: ['A', 'B'].map((section) {
+                    return DropdownMenuItem<String>(
+                      value: section,
+                      child: Text('Section $section'),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedSection = value;
+                    });
+                  },
+                ),
+              ),
+
+              SizedBox(height: 16),
+
+              _buildSectionTitle('Add Student Records'),
+              _buildTextField(_studentsEnrollController, 'Enter Enroll No (comma separated)', TextInputType.text),
+
+              // Dropdown for selecting status
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: DropdownButtonFormField<String>(
+                  value: _status,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  items: [
+                    DropdownMenuItem(value: 'P', child: Text('Present')),
+                    DropdownMenuItem(value: 'A', child: Text('Absent')),
+                    DropdownMenuItem(value: 'L', child: Text('Leave')),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _status = value!;
+                    });
+                  },
+                ),
+              ),
+
+              SizedBox(height: 8),
+
+              ElevatedButton(
+                onPressed: _addStudentRecords,
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.green,
+                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 5,
+                ),
+                child: Text('Add Records'),
+              ),
+
+              SizedBox(height: 16),
+
+              if (studentRecords.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSectionTitle('Added Records'),
+                    ...studentRecords.map((record) {
+                      return ListTile(
+                        title: Text('Enroll No: ${record['enrollNo']}'),
+                        subtitle: Text('Status: ${record['status'] == 'P' ? 'Present' : record['status'] == 'A' ? 'Absent' : 'Leave'}'),
+                      );
+                    }).toList(),
+                  ],
+                ),
+
+              SizedBox(height: 16),
+
+              _isSubmitting
+                  ? Center(child: CircularProgressIndicator())
+                  : ElevatedButton(
+                      onPressed: _submitAttendance,
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.blue,
+                        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 5,
                       ),
-              )
-            else
-              const Center(child: CircularProgressIndicator()),
-          ],
+                      child: Text('Submit Attendance'),
+                    ),
+
+              SizedBox(height: 16),
+
+              if (_message.isNotEmpty)
+                Text(
+                  _message,
+                  style: TextStyle(
+                    color: _message.contains('success') ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, TextInputType keyboardType) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          labelText: label,
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.teal[900], // Dark Teal color for title
         ),
       ),
     );

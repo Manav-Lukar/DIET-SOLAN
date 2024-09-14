@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'faculty_personal_info.dart';
 import 'faculty_attendance_page.dart';
 import 'courses_teaching_page.dart';
+import 'show_attendance_page.dart'; // Import the new page
 
 class FacultyHomePage extends StatelessWidget {
   final String username;
@@ -67,6 +68,7 @@ class FacultyHomePage extends StatelessWidget {
                     buildTile(context, 'Personal Info', Icons.person, Colors.blue),
                     buildTile(context, 'Courses Teaching', Icons.book, Colors.green),
                     buildTile(context, 'Attendance Records', Icons.assignment, Colors.orange),
+                    buildTile(context, 'Show Attendance', Icons.visibility, Colors.red), // New Tile
                   ],
                 ),
               ),
@@ -135,6 +137,19 @@ class FacultyHomePage extends StatelessWidget {
                 facultyName: facultyName,
                 subjects: const ['Mathematics', 'Physics', 'Chemistry'],
                 token: token,
+              ),
+            ),
+          );
+        } else if (title == 'Show Attendance') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ShowAttendancePage(
+                facultyName: facultyName,
+                token: token,
+                courseId: '', // Provide default or empty values
+                year: '',
+                section: '',
               ),
             ),
           );
