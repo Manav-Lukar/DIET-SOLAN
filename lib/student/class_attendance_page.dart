@@ -251,6 +251,28 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
                       final time = entry.value['time'] ?? 'Unknown Time';
                       final status = entry.value['status'] ?? 'Unknown';
 
+                      Color statusColor;
+                      IconData statusIcon;
+
+                      switch (status) {
+                        case 'P':
+                          statusColor = Colors.green;
+                          statusIcon = Icons.check_circle;
+                          break;
+                        case 'A':
+                          statusColor = Colors.red;
+                          statusIcon = Icons.cancel;
+                          break;
+                        case 'L':
+                          statusColor = const Color.fromARGB(255, 253, 215, 2);
+                          statusIcon = Icons.access_time;
+                          break;
+                        default:
+                          statusColor = Colors.grey;
+                          statusIcon = Icons.help;
+                          break;
+                      }
+
                       return Container(
                         margin: const EdgeInsets.symmetric(vertical: 4.0),
                         padding: const EdgeInsets.all(12.0),
@@ -262,18 +284,14 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
                         child: Row(
                           children: [
                             Icon(
-                              status == 'P' ? Icons.check_circle : Icons.cancel,
-                              color: status == 'P' ? Colors.green : Colors.red,
+                              statusIcon,
+                              color: statusColor,
                             ),
-                            const SizedBox(width: 8.0),
+                            const SizedBox(width: 8),
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Date: $formattedDate', style: const TextStyle(fontSize: 16)),
-                                  Text('Time: $time', style: const TextStyle(fontSize: 16)),
-                                  Text('Status: $status', style: TextStyle(fontSize: 16, color: status == 'P' ? Colors.green : Colors.red)),
-                                ],
+                              child: Text(
+                                '$formattedDate - $time - $status',
+                                style: TextStyle(color: statusColor),
                               ),
                             ),
                           ],
