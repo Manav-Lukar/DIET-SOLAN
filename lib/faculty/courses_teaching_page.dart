@@ -9,7 +9,7 @@ class CoursesTeachingPage extends StatefulWidget {
   const CoursesTeachingPage({
     super.key,
     required this.facultyName,
-    required this.token, required facultyDetails,
+    required this.token, required facultyDetails, required String username, required List coursesTeaching,
   });
 
   @override

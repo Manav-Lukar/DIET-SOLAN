@@ -121,16 +121,18 @@ Future<void> _loginUser(BuildContext context) async {
                 adminInfo: {
                   'name': adminName ?? 'Admin',
                   'email': adminEmail ?? '',
-                },
+                }, 
               ),
             ),
           );
         } else if (successRole == 'Faculty') {
+          // Get faculty details from the response
           final facultyName = userDetails['Name'];
           final facultyEmail = userDetails['email'];
           final coursesTeaching = userDetails['coursesTeaching'] ?? [];
           final classesTeaching = userDetails['classesTeaching'] ?? [];
 
+          // Navigate to the FacultyHomePage with full faculty details
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -142,6 +144,13 @@ Future<void> _loginUser(BuildContext context) async {
                 token: token ?? '',
                 coursesTeaching: coursesTeaching,
                 classesTeaching: classesTeaching,
+                facultyDetails: {
+                  'Name': facultyName,
+                  'email': facultyEmail,
+                  'coursesTeaching': coursesTeaching,
+                  'classesTeaching': classesTeaching,
+                  'role': userDetails['role'],
+                }, // Pass the full faculty details for the personal info dialog
               ),
             ),
           );
@@ -153,21 +162,22 @@ Future<void> _loginUser(BuildContext context) async {
           }
 
           Navigator.pushReplacement(
-  context,
-  MaterialPageRoute(
-    builder: (context) => StudentHomePage(
-      username: _usernameController.text,
-      notices: const [], // Adjust as needed
-      studentDetails: userDetails,
-      studentName: '${userDetails['fName']} ${userDetails['lName']}',
-      rollNo: userDetails['rollNo'].toString(),
-      year: userDetails['year'].toString(),
-      section: userDetails['section'],
-      token: token ?? '', subjectsData: [], role: '',
-    ),
-  ),
-);
-
+            context,
+            MaterialPageRoute(
+              builder: (context) => StudentHomePage(
+                username: _usernameController.text,
+                notices: const [], // Adjust as needed
+                studentDetails: userDetails,
+                studentName: '${userDetails['fName']} ${userDetails['lName']}',
+                rollNo: userDetails['rollNo'].toString(),
+                year: userDetails['year'].toString(),
+                section: userDetails['section'],
+                token: token ?? '',
+                subjectsData: [],
+                role: '',
+              ),
+            ),
+          );
         }
       } else {
         setState(() {
@@ -190,7 +200,6 @@ Future<void> _loginUser(BuildContext context) async {
     });
   }
 }
-
 
 
 

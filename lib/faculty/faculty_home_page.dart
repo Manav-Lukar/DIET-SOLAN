@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'faculty_personal_info.dart';
+import 'FacultyPersonalInfoDialog.dart';
 import 'faculty_attendance_page.dart';
 import 'courses_teaching_page.dart';
 import 'show_attendance_page.dart'; // Import the new page
@@ -12,6 +12,7 @@ class FacultyHomePage extends StatelessWidget {
   final List<dynamic> coursesTeaching;
   final List<dynamic> classesTeaching;
   final List<dynamic> notices;
+  final Map<String, dynamic> facultyDetails; // Added facultyDetails parameter
 
   const FacultyHomePage({
     Key? key,
@@ -22,6 +23,7 @@ class FacultyHomePage extends StatelessWidget {
     required this.coursesTeaching,
     required this.classesTeaching,
     required this.notices,
+    required this.facultyDetails, // Added facultyDetails
   }) : super(key: key);
 
   @override
@@ -31,7 +33,10 @@ class FacultyHomePage extends StatelessWidget {
         backgroundColor: const Color.fromARGB(255, 225, 244, 248),
         title: Text(
           'Welcome $facultyName',
-          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -55,7 +60,7 @@ class FacultyHomePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 40.0), // Pushing the tiles down
+            const SizedBox(height: 20.0),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -65,10 +70,93 @@ class FacultyHomePage extends StatelessWidget {
                   mainAxisSpacing: 20.0,
                   crossAxisSpacing: 20.0,
                   children: [
-                    buildTile(context, 'Personal Info', Icons.person, Colors.blue),
-                    buildTile(context, 'Courses Teaching', Icons.book, Colors.green),
-                    buildTile(context, 'Attendance Records', Icons.assignment, Colors.orange),
-                    buildTile(context, 'Show Attendance', Icons.visibility, Colors.red), // New Tile
+                   buildTile(
+  context,
+  'Personal Info',
+  Icons.person,
+  Colors.blue,
+  () => showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      // Filter out _id fields from classesTeaching
+      List<Map<String, dynamic>> filteredClasses = classesTeaching.map((classInfo) {
+        return {
+          'Year': classInfo['year'],
+          'Sections': classInfo['sections'].join(', '),
+        };
+      }).toList();
+
+      // Prepare faculty info excluding unnecessary fields like _id
+      final facultyInfo = {
+        'Name': facultyName,
+        'Email': email,
+        'Courses Teaching': coursesTeaching.join(', '),
+        'Classes Teaching': filteredClasses
+            .map((classInfo) => 'Year ${classInfo['Year']}, Sections: ${classInfo['Sections']}')
+            .join('; '),
+      };
+
+      return FacultyPersonalInfoDialog(
+        facultyInfo: facultyInfo,
+      );
+    },
+  ),
+),
+
+                    buildTile(
+                      context,
+                      'Courses Teaching',
+                      Icons.school,
+                      Colors.orange,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CoursesTeachingPage(
+                            username: username,
+                            token: token,
+                            facultyName: facultyName,
+                            coursesTeaching: coursesTeaching,
+                            facultyDetails: facultyDetails, // Passing facultyDetails here
+                          ),
+                        ),
+                      ),
+                    ),
+                    buildTile(
+                      context,
+                      'Class Attendance',
+                      Icons.assignment,
+                      Colors.red,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FacultyAttendancePage(
+                            facultyName: facultyName,
+                            classesTeaching: classesTeaching,
+                            token: token,
+                            subjects: [], // Update this with actual subjects if available
+                          ),
+                        ),
+                      ),
+                    ),
+                    buildTile(
+                      context,
+                      'View Attendance',
+                      Icons.remove_red_eye,
+                      Colors.green,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ShowAttendancePage(
+                            token: token,
+                            facultyName: facultyName,
+                            classesTeaching: classesTeaching,
+                            courseId: '', // You may pass actual course ID if available
+                            year: '', // Pass actual year
+                            section: '', // Pass actual section
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -76,85 +164,13 @@ class FacultyHomePage extends StatelessWidget {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return FacultyInfoDialog(
-                facultyInfo: {
-                  "Name": facultyName,
-                  "Email": email,
-                  "CoursesTeaching": coursesTeaching,
-                  "ClassesTeaching": classesTeaching,
-                },
-                username: username,
-              );
-            },
-          );
-        },
-        backgroundColor: Colors.blue,
-        tooltip: 'View Personal Info',
-        child: const Icon(Icons.account_circle, color: Colors.white),
-      ),
     );
   }
 
-  Widget buildTile(BuildContext context, String title, IconData icon, Color color) {
+  Widget buildTile(BuildContext context, String title, IconData icon,
+      Color color, VoidCallback onTap) {
     return GestureDetector(
-      onTap: () {
-        if (title == 'Personal Info') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FacultyInfoDialog(
-                facultyInfo: {
-                  "Name": facultyName,
-                  "Email": email,
-                  "CoursesTeaching": coursesTeaching,
-                  "ClassesTeaching": classesTeaching,
-                },
-                username: username,
-              ),
-            ),
-          );
-        } else if (title == 'Courses Teaching') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CoursesTeachingPage(
-                facultyName: facultyName,
-                token: token,
-                facultyDetails: coursesTeaching,
-              ),
-            ),
-          );
-        } else if (title == 'Attendance Records') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FacultyAttendancePage(
-                facultyName: facultyName,
-                subjects: const ['Mathematics', 'Physics', 'Chemistry'],
-                token: token,
-              ),
-            ),
-          );
-        } else if (title == 'Show Attendance') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ShowAttendancePage(
-                facultyName: facultyName,
-                token: token,
-                courseId: '', // Provide default or empty values
-                year: '',
-                section: '',
-              ),
-            ),
-          );
-        }
-      },
+      onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(

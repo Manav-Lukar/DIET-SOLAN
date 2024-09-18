@@ -11,7 +11,7 @@ class FacultyAttendancePage extends StatefulWidget {
     super.key,
     required this.token,
     required this.facultyName,
-    required this.subjects,
+    required this.subjects, required List classesTeaching,
   });
 
   @override
