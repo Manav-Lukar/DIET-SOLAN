@@ -81,43 +81,53 @@ class _CourseAddAndDeletePageState extends State<CourseAddAndDeletePage> {
       });
     }
   }
+Future<void> _deleteCourse(int index) async {
+  final course = courses[index];
+  final courseId = course['courseId'];
+  final token = await _getToken();
 
-  Future<void> _deleteCourse(int index) async {
-    final course = courses[index];
-    final courseId = course['courseId'];
-    final token = await _getToken();
-
-    if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No token found')),
-      );
-      return;
-    }
-
-    try {
-      final response = await http.delete(
-        Uri.parse('$deleteCourseApiUrl/$courseId'),  // Pass courseId in the URL
-        headers: {'Authorization': 'Bearer $token'},
-      );
-
-      if (response.statusCode == 200) {
-        setState(() {
-          courses.removeAt(index);
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Course deleted successfully')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to delete course')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-    }
+  if (token == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('No token found')),
+    );
+    return;
   }
+
+  try {
+    final response = await http.delete(
+      Uri.parse(deleteCourseApiUrl),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({'courseId': courseId}),
+    );
+
+    // Debug prints
+    print('Delete Course Response Status: ${response.statusCode}');
+    print('Delete Course Response Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      setState(() {
+        courses.removeAt(index);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Course deleted successfully')),
+      );
+    } else {
+      // Print response body to debug why the deletion failed
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete course: ${response.body}')),
+      );
+    }
+  } catch (e) {
+    // Print detailed error message for debugging
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: $e')),
+    );
+  }
+}
+
 
   Future<void> _addCourse(Map<String, dynamic> courseData) async {
     final token = await _getToken();
@@ -298,9 +308,10 @@ class _CourseAddAndDeletePageState extends State<CourseAddAndDeletePage> {
                         style: Theme.of(context).textTheme.titleLarge),
                     subtitle: Text('Code: ${course['courseId']}'),
                     trailing: IconButton(
-                      icon: const Icon(Icons.delete),
-                      color: Colors.red,  // Set color of delete icon to red
-                      onPressed: () => _deleteCourse(index),
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        _deleteCourse(index);
+                      },
                     ),
                     onTap: () => _showCourseDetailsDialog(course),
                   ),

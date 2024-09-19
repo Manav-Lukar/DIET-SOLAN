@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'admin_personal_info.dart';
-import 'faculty_add_and_delete_faculty.dart';
+import 'faculty_add_and_delete.dart'; // Import the new Faculty management file
 import 'student_add_and_delete.dart'; // Import the Student management file
 import 'course_add_and_delete.dart';  // Import the Course management file
 

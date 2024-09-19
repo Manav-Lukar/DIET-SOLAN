@@ -62,7 +62,6 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
         },
       );
 
-      // Print response status code and body to debug console
       print('Response Status Code: ${response.statusCode}');
       print('Response Body: ${response.body}');
 
@@ -134,73 +133,45 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Show Attendance Records'),
-        backgroundColor: Color(0xFFE0F7FA),
+        backgroundColor: const Color(0xFFE0F7FA),
         elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(Icons.download),
+            icon: const Icon(Icons.download),
             onPressed: () {
               if (attendanceRecords.isNotEmpty) {
                 _generateAndDownloadPdf(attendanceRecords);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('No records to download.')),
+                  const SnackBar(content: Text('No records to download.')),
                 );
               }
             },
           ),
         ],
       ),
-      backgroundColor: Color(0xFFE0F7FA),
+      backgroundColor: const Color(0xFFE0F7FA),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
-              controller: _courseIdController,
-              decoration: InputDecoration(
-                labelText: 'Course ID',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                fillColor: Colors.white,
-                filled: true,
-              ),
-            ),
+            _buildTextField(_courseIdController, 'Course ID'),
             const SizedBox(height: 16.0),
-            TextField(
-              controller: _yearController,
-              decoration: InputDecoration(
-                labelText: 'Year (e.g., 1, 2)',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                fillColor: Colors.white,
-                filled: true,
-              ),
-              keyboardType: TextInputType.number,
-            ),
+            _buildTextField(_yearController, 'Year (e.g., 1, 2)', inputType: TextInputType.number),
             const SizedBox(height: 16.0),
-            TextField(
-              controller: _sectionController,
-              decoration: InputDecoration(
-                labelText: 'Section (e.g., A, B)',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                fillColor: Colors.white,
-                filled: true,
-              ),
-            ),
+            _buildTextField(_sectionController, 'Section (e.g., A, B)'),
             const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: _fetchAttendanceRecords,
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.blue,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
-              child: Text('Show Attendance'),
+              child: const Text('Show Attendance'),
             ),
             const SizedBox(height: 16.0),
             _isLoading
@@ -214,7 +185,7 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
                             final record = attendanceRecords[index];
                             return Card(
                               elevation: 3,
-                              margin: EdgeInsets.symmetric(vertical: 8.0),
+                              margin: const EdgeInsets.symmetric(vertical: 8.0),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15.0),
                               ),
@@ -224,7 +195,7 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
                                   backgroundColor: Colors.teal[50],
                                   child: Text(
                                     '${record['enrollNo']}',
-                                    style: TextStyle(color: Colors.black),
+                                    style: const TextStyle(color: Colors.black),
                                   ),
                                 ),
                                 title: Text('Enroll No: ${record['enrollNo']}'),
@@ -235,7 +206,7 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
                                     Text('Date: ${record['date']}'),
                                   ],
                                 ),
-                                trailing: Icon(Icons.check_circle, color: Colors.green),
+                                trailing: const Icon(Icons.check_circle, color: Colors.green),
                               ),
                             );
                           },
@@ -243,6 +214,22 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
                       ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String labelText,
+      {TextInputType inputType = TextInputType.text}) {
+    return TextField(
+      controller: controller,
+      keyboardType: inputType,
+      decoration: InputDecoration(
+        labelText: labelText,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        fillColor: Colors.white,
+        filled: true,
       ),
     );
   }

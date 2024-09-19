@@ -3,6 +3,7 @@ import 'FacultyPersonalInfoDialog.dart';
 import 'faculty_attendance_page.dart';
 import 'courses_teaching_page.dart';
 import 'show_attendance_page.dart'; // Import the new page
+import 'update_remove_attendance_page.dart'; // Import the new page
 
 class FacultyHomePage extends StatelessWidget {
   final String username;
@@ -70,39 +71,38 @@ class FacultyHomePage extends StatelessWidget {
                   mainAxisSpacing: 20.0,
                   crossAxisSpacing: 20.0,
                   children: [
-                   buildTile(
-  context,
-  'Personal Info',
-  Icons.person,
-  Colors.blue,
-  () => showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      // Filter out _id fields from classesTeaching
-      List<Map<String, dynamic>> filteredClasses = classesTeaching.map((classInfo) {
-        return {
-          'Year': classInfo['year'],
-          'Sections': classInfo['sections'].join(', '),
-        };
-      }).toList();
+                    buildTile(
+                      context,
+                      'Personal Info',
+                      Icons.person,
+                      Colors.blue,
+                      () => showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          // Filter out _id fields from classesTeaching
+                          List<Map<String, dynamic>> filteredClasses = classesTeaching.map((classInfo) {
+                            return {
+                              'Year': classInfo['year'],
+                              'Sections': classInfo['sections'].join(', '),
+                            };
+                          }).toList();
 
-      // Prepare faculty info excluding unnecessary fields like _id
-      final facultyInfo = {
-        'Name': facultyName,
-        'Email': email,
-        'Courses Teaching': coursesTeaching.join(', '),
-        'Classes Teaching': filteredClasses
-            .map((classInfo) => 'Year ${classInfo['Year']}, Sections: ${classInfo['Sections']}')
-            .join('; '),
-      };
+                          // Prepare faculty info excluding unnecessary fields like _id
+                          final facultyInfo = {
+                            'Name': facultyName,
+                            'Email': email,
+                            'Courses Teaching': coursesTeaching.join(', '),
+                            'Classes Teaching': filteredClasses
+                                .map((classInfo) => 'Year ${classInfo['Year']}, Sections: ${classInfo['Sections']}')
+                                .join('; '),
+                          };
 
-      return FacultyPersonalInfoDialog(
-        facultyInfo: facultyInfo,
-      );
-    },
-  ),
-),
-
+                          return FacultyPersonalInfoDialog(
+                            facultyInfo: facultyInfo,
+                          );
+                        },
+                      ),
+                    ),
                     buildTile(
                       context,
                       'Courses Teaching',
@@ -153,6 +153,22 @@ class FacultyHomePage extends StatelessWidget {
                             courseId: '', // You may pass actual course ID if available
                             year: '', // Pass actual year
                             section: '', // Pass actual section
+                          ),
+                        ),
+                      ),
+                    ),
+                    buildTile(
+                      context,
+                      'Update/Remove Attendance',
+                      Icons.edit,
+                      Colors.blueAccent,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UpdateRemoveAttendancePage(
+                            token: token,
+                            coursesTeaching: coursesTeaching,
+                            classesTeaching: classesTeaching,
                           ),
                         ),
                       ),

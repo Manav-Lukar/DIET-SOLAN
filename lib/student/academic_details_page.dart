@@ -5,18 +5,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AcademicDetailsPage extends StatefulWidget {
   final String username;
-  final List<int> subjectsData;
   final Map<String, dynamic> studentDetails;
   final String studentName;
   final String rollNo;
+  final String token;
+  final List<int> subjectsData;
 
   const AcademicDetailsPage({
     super.key,
     required this.username,
-    required this.subjectsData,
     required this.studentDetails,
     required this.studentName,
-    required this.rollNo, required String token,
+    required this.rollNo,
+    required this.token,
+    required this.subjectsData,
   });
 
   @override
@@ -25,54 +27,65 @@ class AcademicDetailsPage extends StatefulWidget {
 
 class _AcademicDetailsPageState extends State<AcademicDetailsPage> {
   List<String> _courses = [];
-  String? _token;
-  final String coursesApiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/course/show-courses-students';
+  final String coursesApiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/course/show-courses';
 
   @override
   void initState() {
     super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    final prefs = await SharedPreferences.getInstance();
-    _token = prefs.getString('token');
-    await _fetchCourses();
+    _fetchCourses();
   }
 
   Future<void> _fetchCourses() async {
-    if (_token == null) {
+    final List<int> courseIds = widget.subjectsData;
+
+    if (courseIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No token found')),
+        const SnackBar(content: Text('No courses available')),
       );
       return;
     }
+
+    final requestBody = json.encode({'courses': courseIds});
+    print('Request URL: $coursesApiUrl');
+    print('Request Headers: ${{
+      'Authorization': 'Bearer ${widget.token}',
+      'Content-Type': 'application/json',
+    }}');
+    print('Request Body: $requestBody');
 
     try {
       final response = await http.post(
         Uri.parse(coursesApiUrl),
         headers: {
-          'Authorization': 'Bearer $_token',
+          'Authorization': 'Bearer ${widget.token}',
           'Content-Type': 'application/json',
         },
-        body: json.encode({'courses': widget.subjectsData}),
+        body: requestBody,
       );
 
       print('API Response Status: ${response.statusCode}');
       print('API Response Body: ${response.body}');
+      print('API Response Headers: ${response.headers}');
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        final List<String> courseNames = data.map((course) {
-          return course['courseName']?.toString() ?? 'Unknown Course';
-        }).toList();
+        final data = json.decode(response.body);
 
-        setState(() {
-          _courses = courseNames;
-        });
+        if (data is List) {
+          final List<String> courseNames = data.map((course) {
+            return course['courseName']?.toString() ?? 'Unknown Course';
+          }).toList();
+
+          setState(() {
+            _courses = courseNames;
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Unexpected response format: ${data.toString()}')),
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to fetch courses')),
+          SnackBar(content: Text('Failed to fetch courses: ${response.reasonPhrase}')),
         );
       }
     } catch (e) {

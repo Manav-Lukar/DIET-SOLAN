@@ -12,10 +12,13 @@ class StudentAddAndDeletePage extends StatefulWidget {
 class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
   List<Map<String, dynamic>> students = [];
   bool isLoading = true;
+
   final String apiUrl =
       'https://student-attendance-system-ckb1.onrender.com/api/student/all-students';
   final String addStudentApiUrl =
       'https://student-attendance-system-ckb1.onrender.com/api/student/new-student';
+  final String removeStudentApiUrl =
+      'https://student-attendance-system-ckb1.onrender.com/api/student/remove-student';
 
   @override
   void initState() {
@@ -29,19 +32,12 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
   }
 
   Future<void> _fetchStudents() async {
-    setState(() {
-      isLoading = true;
-    });
-
+    setState(() => isLoading = true);
     final token = await _getToken();
 
     if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No token found')),
-      );
-      setState(() {
-        isLoading = false;
-      });
+      _showSnackBar('No token found');
+      setState(() => isLoading = false);
       return;
     }
 
@@ -51,11 +47,11 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
         headers: {'Authorization': 'Bearer $token'},
       );
 
-      print('Fetch Response status: ${response.statusCode}');
-      print('Fetch Response body: ${response.body}');
+      print(
+          'Fetch Students Response: ${response.body}'); // Print response for debugging
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final data = json.decode(response.body) as List;
         setState(() {
           students = data
               .map((student) => {
@@ -75,59 +71,62 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
               .toList();
         });
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to load students')),
-        );
+        _showSnackBar('Failed to load students');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      _showSnackBar('Error: $e');
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
     }
   }
 
-  Future<void> _deleteStudent(int index) async {
-    final student = students[index];
-    final studentId = student['id'];
-    final token = await _getToken();
+Future<void> _deleteStudent(int index, int enrollNo) async {
+  final token = await _getToken();
 
-    if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No token found')),
-      );
-      return;
+  if (token == null) {
+    _showSnackBar('No token found');
+    return;
+  }
+
+  try {
+    final uri = Uri.parse('$removeStudentApiUrl?enrollNo=$enrollNo');
+
+    // Print request details
+    print('Deleting student with enrollNo: $enrollNo');
+    print('Request URL: $uri');
+    print('Authorization Header: Bearer $token');
+
+    final response = await http.delete(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    // Print detailed response for debugging
+    print('Delete Student Response Status: ${response.statusCode}');
+    print('Delete Student Response Body: ${response.body}');
+    print('Delete Student Response Headers: ${response.headers}');  // Print response headers
+
+    if (response.statusCode == 200) {
+      setState(() {
+        students.removeAt(index);
+      });
+      _showSnackBar('Student deleted successfully');
+    } else {
+      final responseBody = json.decode(response.body);
+      final errorMessage = responseBody['message'] ?? 'Failed to delete student';
+      _showSnackBar(errorMessage);
     }
+  } catch (e) {
+    _showSnackBar('Error: $e');
+  }
+}
 
-    try {
-      final response = await http.delete(
-        Uri.parse('$apiUrl/$studentId'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
 
-      print('Delete Response status: ${response.statusCode}');
-      print('Delete Response body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        setState(() {
-          students.removeAt(index);
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Student deleted successfully')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to delete student')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-    }
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _showStudentDetails(Map<String, dynamic> student) {
@@ -138,30 +137,23 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
         content: SingleChildScrollView(
           child: ListBody(
             children: <Widget>[
-              Text('Name: ${student['name']}',
-                  style: Theme.of(context).textTheme.titleMedium),
-              Text('Email: ${student['email']}',
-                  style: Theme.of(context).textTheme.bodyLarge),
-              Text('Enroll No: ${student['enrollNo']}',
-                  style: Theme.of(context).textTheme.bodyLarge),
-              Text('Year: ${student['year']}',
-                  style: Theme.of(context).textTheme.bodyLarge),
-              Text('Section: ${student['section']}',
-                  style: Theme.of(context).textTheme.bodyLarge),
-              Text('Father\'s Name: ${student['fatherName']}',
-                  style: Theme.of(context).textTheme.bodyLarge),
-              Text('Mother\'s Name: ${student['motherName']}',
-                  style: Theme.of(context).textTheme.bodyLarge),
-              Text('Date of Birth: ${student['dob']}',
-                  style: Theme.of(context).textTheme.bodyLarge),
+              ...[
+                'Name',
+                'Email',
+                'Enroll No',
+                'Year',
+                'Section',
+                'Father\'s Name',
+                'Mother\'s Name',
+                'Date of Birth'
+              ].map((label) => Text('$label: ${student[_getKey(label)]}',
+                  style: Theme.of(context).textTheme.bodyLarge)),
             ],
           ),
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+            onPressed: () => Navigator.of(context).pop(),
             child: const Text('Close'),
           ),
         ],
@@ -169,13 +161,34 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
     );
   }
 
+  String _getKey(String label) {
+    switch (label) {
+      case 'Name':
+        return 'name';
+      case 'Email':
+        return 'email';
+      case 'Enroll No':
+        return 'enrollNo';
+      case 'Year':
+        return 'year';
+      case 'Section':
+        return 'section';
+      case 'Father\'s Name':
+        return 'fatherName';
+      case 'Mother\'s Name':
+        return 'motherName';
+      case 'Date of Birth':
+        return 'dob';
+      default:
+        return '';
+    }
+  }
+
   Future<void> _addStudent(Map<String, dynamic> studentData) async {
     final token = await _getToken();
 
     if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No token found')),
-      );
+      _showSnackBar('No token found');
       return;
     }
 
@@ -189,41 +202,37 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
         body: json.encode(studentData),
       );
 
-      print('Add Student Response status: ${response.statusCode}');
-      print('Add Student Response body: ${response.body}');
+      print(
+          'Add Student Response: ${response.body}'); // Print response for debugging
 
       if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Student added successfully')),
-        );
-        _fetchStudents(); // Refresh the student list
+        _showSnackBar('Student added successfully');
+        _fetchStudents();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to add student')),
-        );
+        _showSnackBar('Failed to add student');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      _showSnackBar('Error: $e');
     }
   }
 
   void _showAddStudentDialog() {
     final _formKey = GlobalKey<FormState>();
-    final _fNameController = TextEditingController();
-    final _lNameController = TextEditingController();
-    final _emailController = TextEditingController();
-    final _enrollNoController = TextEditingController();
-    final _yearController = TextEditingController();
-    final _sectionController = TextEditingController();
-    final _fatherNameController = TextEditingController();
-    final _motherNameController = TextEditingController();
-    final _dobController = TextEditingController();
-    final _rollNoController = TextEditingController();
-    final _genderController = TextEditingController();
-    final _parentsContactController = TextEditingController();
-    final _passwordController = TextEditingController();
+    final _controllers = {
+      'fName': TextEditingController(),
+      'lName': TextEditingController(),
+      'email': TextEditingController(),
+      'enrollNo': TextEditingController(),
+      'year': TextEditingController(),
+      'section': TextEditingController(),
+      'fatherName': TextEditingController(),
+      'motherName': TextEditingController(),
+      'dob': TextEditingController(),
+      'rollNo': TextEditingController(),
+      'gender': TextEditingController(),
+      'parentsContact': TextEditingController(),
+      'password': TextEditingController(),
+    };
 
     showDialog(
       context: context,
@@ -234,146 +243,33 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                TextFormField(
-                  controller: _fNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'First Name',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter the first name';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _lNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Last Name',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter the email';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _enrollNoController,
-                  decoration: const InputDecoration(
-                    labelText: 'Enroll No',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _yearController,
-                  decoration: const InputDecoration(
-                    labelText: 'Year',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _sectionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Section',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _fatherNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Father\'s Name',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _motherNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Mother\'s Name',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _dobController,
-                  decoration: const InputDecoration(
-                    labelText: 'Date of Birth',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _rollNoController,
-                  decoration: const InputDecoration(
-                    labelText: 'Roll No',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _genderController,
-                  decoration: const InputDecoration(
-                    labelText: 'Gender',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _parentsContactController,
-                  decoration: const InputDecoration(
-                    labelText: 'Parents Contact',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(),
-                  ),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 10),
+              children: [
+                ..._controllers.entries.map((entry) {
+                  final key = entry.key;
+                  final controller = entry.value;
+                  final labelText = _getLabelText(key);
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: TextFormField(
+                      controller: controller,
+                      decoration: InputDecoration(
+                        labelText: labelText,
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: _getKeyboardType(key),
+                      obscureText: key == 'password',
+                      validator: (value) => value == null || value.isEmpty
+                          ? 'Please enter $labelText'
+                          : null,
+                    ),
+                  );
+                }).toList(),
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState?.validate() ?? false) {
-                      final studentData = {
-                        'fName': _fNameController.text,
-                        'lName': _lNameController.text,
-                        'email': _emailController.text,
-                        'enrollNo': _enrollNoController.text,
-                        'year': _yearController.text,
-                        'section': _sectionController.text,
-                        'fatherName': _fatherNameController.text,
-                        'motherName': _motherNameController.text,
-                        'dob': _dobController.text,
-                        'rollNo': _rollNoController.text,
-                        'gender': _genderController.text,
-                        'parentsContact': _parentsContactController.text,
-                        'password': _passwordController.text,
-                      };
-
+                      final studentData = _controllers.map(
+                          (key, controller) => MapEntry(key, controller.text));
                       _addStudent(studentData);
                       Navigator.of(context).pop();
                     }
@@ -386,14 +282,51 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+            onPressed: () => Navigator.of(context).pop(),
             child: const Text('Cancel'),
           ),
         ],
       ),
     );
+  }
+
+  String _getLabelText(String key) {
+    switch (key) {
+      case 'fName':
+        return 'First Name';
+      case 'lName':
+        return 'Last Name';
+      case 'email':
+        return 'Email';
+      case 'enrollNo':
+        return 'Enroll No';
+      case 'year':
+        return 'Year';
+      case 'section':
+        return 'Section';
+      case 'fatherName':
+        return 'Father\'s Name';
+      case 'motherName':
+        return 'Mother\'s Name';
+      case 'dob':
+        return 'Date of Birth';
+      case 'rollNo':
+        return 'Roll No';
+      case 'gender':
+        return 'Gender';
+      case 'parentsContact':
+        return 'Parents Contact';
+      case 'password':
+        return 'Password';
+      default:
+        return '';
+    }
+  }
+
+  TextInputType _getKeyboardType(String key) {
+    if (key == 'email') return TextInputType.emailAddress;
+    if (key == 'enrollNo' || key == 'year') return TextInputType.number;
+    return TextInputType.text;
   }
 
   @override
@@ -418,21 +351,64 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
                 final student = students[index];
                 return Card(
                   elevation: 2,
-                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   child: ListTile(
-                    contentPadding: const EdgeInsets.all(12),
-                    title: Text(student['name'],
-                        style: Theme.of(context).textTheme.titleLarge),
+                    title: Text(student['name']),
                     subtitle: Text('Enroll No: ${student['enrollNo']}'),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _deleteStudent(index),
+                      onPressed: () => _showDeleteDialog(student['enrollNo']),
                     ),
                     onTap: () => _showStudentDetails(student),
                   ),
                 );
               },
             ),
+    );
+  }
+
+  void _showDeleteDialog(String enrollNo) {
+    final _enrollNoController = TextEditingController(text: enrollNo);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Student'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _enrollNoController,
+              decoration: const InputDecoration(
+                labelText: 'Enter Enroll No',
+              ),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              final enrollNo = int.tryParse(_enrollNoController.text) ?? 0;
+              if (enrollNo > 0) {
+                _deleteStudent(
+                    students.indexWhere(
+                        (student) => student['enrollNo'] == enrollNo),
+                    enrollNo);
+                Navigator.of(context).pop();
+              } else {
+                _showSnackBar('Invalid enroll number');
+              }
+            },
+            child: const Text('Delete'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
     );
   }
 }
