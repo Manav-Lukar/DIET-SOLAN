@@ -12,9 +12,12 @@ class _CourseAddAndDeletePageState extends State<CourseAddAndDeletePage> {
   List<Map<String, dynamic>> courses = [];
   bool isLoading = true;
 
-  final String apiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/course/show-courses';
-  final String addCourseApiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/course/add-course';
-  final String deleteCourseApiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/course/remove-course';
+  final String apiUrl =
+      'https://student-attendance-system-ckb1.onrender.com/api/course/show-courses';
+  final String addCourseApiUrl =
+      'https://student-attendance-system-ckb1.onrender.com/api/course/add-course';
+  final String deleteCourseApiUrl =
+      'https://student-attendance-system-ckb1.onrender.com/api/course/remove-course';
 
   @override
   void initState() {
@@ -64,7 +67,8 @@ class _CourseAddAndDeletePageState extends State<CourseAddAndDeletePage> {
         });
       } else if (response.statusCode == 403) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Session expired, please log in again.')),
+          const SnackBar(
+              content: Text('Session expired, please log in again.')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -81,53 +85,53 @@ class _CourseAddAndDeletePageState extends State<CourseAddAndDeletePage> {
       });
     }
   }
-Future<void> _deleteCourse(int index) async {
-  final course = courses[index];
-  final courseId = course['courseId'];
-  final token = await _getToken();
 
-  if (token == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('No token found')),
-    );
-    return;
-  }
+  Future<void> _deleteCourse(int index) async {
+    final course = courses[index];
+    final courseId = course['courseId'];
+    final token = await _getToken();
 
-  try {
-    final response = await http.delete(
-      Uri.parse(deleteCourseApiUrl),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({'courseId': courseId}),
-    );
-
-    // Debug prints
-    print('Delete Course Response Status: ${response.statusCode}');
-    print('Delete Course Response Body: ${response.body}');
-
-    if (response.statusCode == 200) {
-      setState(() {
-        courses.removeAt(index);
-      });
+    if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Course deleted successfully')),
+        const SnackBar(content: Text('No token found')),
       );
-    } else {
-      // Print response body to debug why the deletion failed
+      return;
+    }
+
+    try {
+      final response = await http.delete(
+        Uri.parse(deleteCourseApiUrl),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'courseId': courseId}),
+      );
+
+      // Debug prints
+      print('Delete Course Response Status: ${response.statusCode}');
+      print('Delete Course Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        setState(() {
+          courses.removeAt(index);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Course deleted successfully')),
+        );
+      } else {
+        // Print response body to debug why the deletion failed
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete course: ${response.body}')),
+        );
+      }
+    } catch (e) {
+      // Print detailed error message for debugging
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to delete course: ${response.body}')),
+        SnackBar(content: Text('Error: $e')),
       );
     }
-  } catch (e) {
-    // Print detailed error message for debugging
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: $e')),
-    );
   }
-}
-
 
   Future<void> _addCourse(Map<String, dynamic> courseData) async {
     final token = await _getToken();
@@ -301,7 +305,8 @@ Future<void> _deleteCourse(int index) async {
                 final course = courses[index];
                 return Card(
                   elevation: 2,
-                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(12),
                     title: Text(course['name'],
@@ -310,7 +315,31 @@ Future<void> _deleteCourse(int index) async {
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
-                        _deleteCourse(index);
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Delete Course'),
+                            content: const Text(
+                                'Do you want to delete this course?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context)
+                                      .pop(); // Close the dialog
+                                },
+                                child: const Text('Cancel'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.of(context)
+                                      .pop(); // Close the dialog
+                                  _deleteCourse(index); // Proceed with deletion
+                                },
+                                child: const Text('Delete'),
+                              ),
+                            ],
+                          ),
+                        );
                       },
                     ),
                     onTap: () => _showCourseDetailsDialog(course),

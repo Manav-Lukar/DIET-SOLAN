@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 class AcademicDetailsPage extends StatefulWidget {
   final String username;
@@ -32,37 +31,37 @@ class _AcademicDetailsPageState extends State<AcademicDetailsPage> {
   @override
   void initState() {
     super.initState();
-    _fetchCourses();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchCourses();
+    });
   }
 
   Future<void> _fetchCourses() async {
-    final List<int> courseIds = widget.subjectsData;
+    setState(() {
+      _courses = []; // Reset the list while loading
+    });
 
-    if (courseIds.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No courses available')),
-      );
+    final token = widget.token;
+
+    if (token.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No token found')),
+        );
+      });
       return;
     }
 
-    final requestBody = json.encode({'courses': courseIds});
-    print('Request URL: $coursesApiUrl');
-    print('Request Headers: ${{
-      'Authorization': 'Bearer ${widget.token}',
-      'Content-Type': 'application/json',
-    }}');
-    print('Request Body: $requestBody');
-
     try {
-      final response = await http.post(
+      final response = await http.get(
         Uri.parse(coursesApiUrl),
         headers: {
-          'Authorization': 'Bearer ${widget.token}',
+          'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
-        body: requestBody,
       );
 
+      // Print debug information
       print('API Response Status: ${response.statusCode}');
       print('API Response Body: ${response.body}');
       print('API Response Headers: ${response.headers}');
@@ -79,19 +78,25 @@ class _AcademicDetailsPageState extends State<AcademicDetailsPage> {
             _courses = courseNames;
           });
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Unexpected response format: ${data.toString()}')),
-          );
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Unexpected response format: ${data.toString()}')),
+            );
+          });
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to fetch courses: ${response.reasonPhrase}')),
-        );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to fetch courses: ${response.reasonPhrase}')),
+          );
+        });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      });
     }
   }
 
