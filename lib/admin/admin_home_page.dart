@@ -9,7 +9,7 @@ class AdminHomePage extends StatelessWidget {
 
   const AdminHomePage({
     super.key,
-    required this.adminInfo,
+    required this.adminInfo, required name,
   });
 
   @override

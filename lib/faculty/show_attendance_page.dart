@@ -25,8 +25,8 @@ class ShowAttendancePage extends StatefulWidget {
 
 class _ShowAttendancePageState extends State<ShowAttendancePage> {
   final _courseIdController = TextEditingController();
-  final _yearController = TextEditingController();
-  final _sectionController = TextEditingController();
+  String? _selectedYear;
+  String? _selectedSection;
 
   List<Map<String, dynamic>> attendanceRecords = [];
   bool _isLoading = false;
@@ -35,15 +35,20 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
   @override
   void dispose() {
     _courseIdController.dispose();
-    _yearController.dispose();
-    _sectionController.dispose();
     super.dispose();
   }
 
   Future<void> _fetchAttendanceRecords() async {
-    final courseId = _courseIdController.text;
-    final year = _yearController.text;
-    final section = _sectionController.text;
+    final courseId = _courseIdController.text.trim();
+    final year = _selectedYear;
+    final section = _selectedSection;
+
+    if (courseId.isEmpty || year == null || section == null) {
+      setState(() {
+        _message = 'Please fill in all fields.';
+      });
+      return;
+    }
 
     final url = Uri.parse(
         'https://student-attendance-system-ckb1.onrender.com/api/attendance/show-attendance-faculty/$courseId/$year/$section');
@@ -62,21 +67,17 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
         },
       );
 
-      print('Response Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body}');
-
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-
         setState(() {
-          attendanceRecords = List<Map<String, dynamic>>.from(data.map((record) {
+          attendanceRecords = data.map((record) {
             final date = record['date']?.split('T')?.first ?? 'No Date';
             return {
               'enrollNo': record['enrollNo'],
               'status': record['status'],
               'date': date,
             };
-          }));
+          }).toList();
           _message = attendanceRecords.isEmpty
               ? 'No attendance records found.'
               : 'Attendance records loaded successfully.';
@@ -132,7 +133,7 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Show Attendance Records'),
+        title: const Text('Show Attendance Records'),
         backgroundColor: const Color(0xFFE0F7FA),
         elevation: 0,
         actions: [
@@ -158,9 +159,17 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
           children: [
             _buildTextField(_courseIdController, 'Course ID'),
             const SizedBox(height: 16.0),
-            _buildTextField(_yearController, 'Year (e.g., 1, 2)', inputType: TextInputType.number),
+            _buildDropdown('Select Year', ['1', '2'], (value) {
+              setState(() {
+                _selectedYear = value;
+              });
+            }),
             const SizedBox(height: 16.0),
-            _buildTextField(_sectionController, 'Section (e.g., A, B)'),
+            _buildDropdown('Select Section', ['A', 'B'], (value) {
+              setState(() {
+                _selectedSection = value;
+              });
+            }),
             const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: _fetchAttendanceRecords,
@@ -189,7 +198,6 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15.0),
                               ),
-                              color: Colors.white,
                               child: ListTile(
                                 leading: CircleAvatar(
                                   backgroundColor: Colors.teal[50],
@@ -225,6 +233,22 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
       keyboardType: inputType,
       decoration: InputDecoration(
         labelText: labelText,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        fillColor: Colors.white,
+        filled: true,
+      ),
+    );
+  }
+
+  Widget _buildDropdown(String label, List<String> items, Function(String?) onChanged) {
+    return DropdownButtonFormField<String>(
+      value: label == 'Select Year' ? _selectedYear : _selectedSection,
+      items: items.map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        labelText: label,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
         ),

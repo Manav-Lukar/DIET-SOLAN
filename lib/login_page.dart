@@ -121,7 +121,7 @@ Future<void> _loginUser(BuildContext context) async {
                 adminInfo: {
                   'name': adminName ?? 'Admin',
                   'email': adminEmail ?? '',
-                }, 
+                }, name: null, 
               ),
             ),
           );
