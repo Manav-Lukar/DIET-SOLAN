@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'FacultyPersonalInfoDialog.dart';
 import 'faculty_attendance_page.dart';
 import 'courses_teaching_page.dart';
-import 'show_attendance_page.dart'; // Import the new page
-import 'update_remove_attendance_page.dart'; // Import the new page
+import 'show_attendance_page.dart';
+import 'remove_attedance.dart';
 
 class FacultyHomePage extends StatelessWidget {
   final String username;
@@ -13,7 +13,7 @@ class FacultyHomePage extends StatelessWidget {
   final List<dynamic> coursesTeaching;
   final List<dynamic> classesTeaching;
   final List<dynamic> notices;
-  final Map<String, dynamic> facultyDetails; // Added facultyDetails parameter
+  final Map<String, dynamic> facultyDetails;
 
   const FacultyHomePage({
     Key? key,
@@ -24,7 +24,7 @@ class FacultyHomePage extends StatelessWidget {
     required this.coursesTeaching,
     required this.classesTeaching,
     required this.notices,
-    required this.facultyDetails, // Added facultyDetails
+    required this.facultyDetails,
   }) : super(key: key);
 
   @override
@@ -79,7 +79,6 @@ class FacultyHomePage extends StatelessWidget {
                       () => showDialog(
                         context: context,
                         builder: (BuildContext context) {
-                          // Filter out _id fields from classesTeaching
                           List<Map<String, dynamic>> filteredClasses = classesTeaching.map((classInfo) {
                             return {
                               'Year': classInfo['year'],
@@ -87,7 +86,6 @@ class FacultyHomePage extends StatelessWidget {
                             };
                           }).toList();
 
-                          // Prepare faculty info excluding unnecessary fields like _id
                           final facultyInfo = {
                             'Name': facultyName,
                             'Email': email,
@@ -116,7 +114,7 @@ class FacultyHomePage extends StatelessWidget {
                             token: token,
                             facultyName: facultyName,
                             coursesTeaching: coursesTeaching,
-                            facultyDetails: facultyDetails, // Passing facultyDetails here
+                            facultyDetails: facultyDetails,
                           ),
                         ),
                       ),
@@ -133,7 +131,7 @@ class FacultyHomePage extends StatelessWidget {
                             facultyName: facultyName,
                             classesTeaching: classesTeaching,
                             token: token,
-                            subjects: [], // Update this with actual subjects if available
+                            subjects: [],
                           ),
                         ),
                       ),
@@ -150,17 +148,17 @@ class FacultyHomePage extends StatelessWidget {
                             token: token,
                             facultyName: facultyName,
                             classesTeaching: classesTeaching,
-                            courseId: '', // You may pass actual course ID if available
-                            year: '', // Pass actual year
-                            section: '', // Pass actual section
+                            courseId: '',
+                            year: '',
+                            section: '',
                           ),
                         ),
                       ),
                     ),
                     buildTile(
                       context,
-                      'Update/Remove Attendance',
-                      Icons.edit,
+                      'Remove Attendance',
+                      Icons.delete,
                       Colors.blueAccent,
                       () => Navigator.push(
                         context,
@@ -183,8 +181,7 @@ class FacultyHomePage extends StatelessWidget {
     );
   }
 
-  Widget buildTile(BuildContext context, String title, IconData icon,
-      Color color, VoidCallback onTap) {
+  Widget buildTile(BuildContext context, String title, IconData icon, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(

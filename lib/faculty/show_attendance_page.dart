@@ -14,9 +14,9 @@ class ShowAttendancePage extends StatefulWidget {
     required this.token,
     required this.facultyName,
     required List classesTeaching,
-    required String courseId,
-    required String section,
     required String year,
+    required String section,
+    required String courseId,
   }) : super(key: key);
 
   @override
@@ -24,38 +24,26 @@ class ShowAttendancePage extends StatefulWidget {
 }
 
 class _ShowAttendancePageState extends State<ShowAttendancePage> {
-  final _courseIdController = TextEditingController();
   String? _selectedYear;
   String? _selectedSection;
-
+  String? _selectedCourseId; // To store selected course ID
   List<Map<String, dynamic>> attendanceRecords = [];
+  List<dynamic> courses = []; // To store fetched courses
   bool _isLoading = false;
   String _message = '';
 
   @override
-  void dispose() {
-    _courseIdController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _fetchCourses(); // Fetch courses when the page initializes
   }
 
-  Future<void> _fetchAttendanceRecords() async {
-    final courseId = _courseIdController.text.trim();
-    final year = _selectedYear;
-    final section = _selectedSection;
-
-    if (courseId.isEmpty || year == null || section == null) {
-      setState(() {
-        _message = 'Please fill in all fields.';
-      });
-      return;
-    }
-
+  Future<void> _fetchCourses() async {
     final url = Uri.parse(
-        'https://student-attendance-system-ckb1.onrender.com/api/attendance/show-attendance-faculty/$courseId/$year/$section');
+        'https://student-attendance-system-ckb1.onrender.com/api/course/show-courses');
 
     setState(() {
       _isLoading = true;
-      _message = '';
     });
 
     try {
@@ -70,10 +58,62 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
+          courses = data; // Store the fetched courses
+        });
+      } else {
+        setState(() {
+          _message = 'Failed to load courses. Status: ${response.statusCode}';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _message = 'Error loading courses: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _fetchAttendanceRecords() async {
+    final year = _selectedYear;
+    final section = _selectedSection;
+
+    if (_selectedCourseId == null || year == null || section == null) {
+      setState(() {
+        _message = 'Please fill in all fields.';
+      });
+      return;
+    }
+
+    final url = Uri.parse(
+        'https://student-attendance-system-ckb1.onrender.com/api/attendance/show-attendance-faculty/$_selectedCourseId/$year/$section');
+
+    setState(() {
+      _isLoading = true;
+      _message = '';
+    });
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'Content-Type': 'application/json',
+        },
+      );
+      debugPrint('GET Response Status: ${response.statusCode}');
+      debugPrint('GET Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
           attendanceRecords = data.map((record) {
             final date = record['date']?.split('T')?.first ?? 'No Date';
             return {
               'enrollNo': record['enrollNo'],
+              'rollNo': record['rollNo'], // Added roll number
               'status': record['status'],
               'date': date,
             };
@@ -99,7 +139,8 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
     }
   }
 
-  Future<void> _generateAndDownloadPdf(List<Map<String, dynamic>> records) async {
+  Future<void> _generateAndDownloadPdf(
+      List<Map<String, dynamic>> records) async {
     final pdf = pw.Document();
 
     pdf.addPage(
@@ -111,12 +152,15 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
               pw.Text('Attendance Records', style: pw.TextStyle(fontSize: 24)),
               pw.SizedBox(height: 20),
               pw.Table.fromTextArray(
-                headers: ['Enroll No', 'Status', 'Date'],
-                data: records.map((record) => [
-                  record['enrollNo'].toString(),
-                  record['status'],
-                  record['date'],
-                ]).toList(),
+                headers: ['Enroll No', 'Roll No', 'Status', 'Date'], // Added Roll No header
+                data: records
+                    .map((record) => [
+                          record['enrollNo'].toString(),
+                          record['rollNo'].toString(), // Added roll number
+                          record['status'],
+                          record['date'],
+                        ])
+                    .toList(),
               ),
             ],
           );
@@ -157,7 +201,7 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildTextField(_courseIdController, 'Course ID'),
+            _buildCourseDropdown(),
             const SizedBox(height: 16.0),
             _buildDropdown('Select Year', ['1', '2'], (value) {
               setState(() {
@@ -202,7 +246,7 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
                                 leading: CircleAvatar(
                                   backgroundColor: Colors.teal[50],
                                   child: Text(
-                                    '${record['enrollNo']}',
+                                    '${record['rollNo']}',
                                     style: const TextStyle(color: Colors.black),
                                   ),
                                 ),
@@ -210,11 +254,13 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    Text('Roll No: ${record['rollNo']}'), // Added roll number
                                     Text('Status: ${record['status']}'),
                                     Text('Date: ${record['date']}'),
                                   ],
                                 ),
-                                trailing: const Icon(Icons.check_circle, color: Colors.green),
+                                trailing: const Icon(Icons.check_circle,
+                                    color: Colors.green),
                               ),
                             );
                           },
@@ -226,13 +272,22 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String labelText,
-      {TextInputType inputType = TextInputType.text}) {
-    return TextField(
-      controller: controller,
-      keyboardType: inputType,
+  Widget _buildCourseDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _selectedCourseId,
+      hint: const Text('Select Course'),
+      items: courses.map((course) {
+        return DropdownMenuItem<String>(
+          value: course['courseId'].toString(),
+          child: Text(course['courseName']),
+        );
+      }).toList(),
+      onChanged: (value) {
+        setState(() {
+          _selectedCourseId = value; // Store selected course ID
+        });
+      },
       decoration: InputDecoration(
-        labelText: labelText,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
         ),
@@ -242,10 +297,13 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
     );
   }
 
-  Widget _buildDropdown(String label, List<String> items, Function(String?) onChanged) {
+  Widget _buildDropdown(
+      String label, List<String> items, Function(String?) onChanged) {
     return DropdownButtonFormField<String>(
       value: label == 'Select Year' ? _selectedYear : _selectedSection,
-      items: items.map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(),
+      items: items
+          .map((value) => DropdownMenuItem(value: value, child: Text(value)))
+          .toList(),
       onChanged: onChanged,
       decoration: InputDecoration(
         labelText: label,

@@ -11,7 +11,8 @@ class FacultyAttendancePage extends StatefulWidget {
     super.key,
     required this.token,
     required this.facultyName,
-    required this.subjects, required List classesTeaching,
+    required this.subjects,
+    required List classesTeaching,
   });
 
   @override
@@ -24,6 +25,7 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
   String _message = '';
 
   final _timeController = TextEditingController();
+  final _dateController = TextEditingController();
   int? _selectedCourseId;
   int? _selectedYear;
   String? _selectedSection;
@@ -57,6 +59,7 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
   @override
   void dispose() {
     _timeController.dispose();
+    _dateController.dispose();
     super.dispose();
   }
 
@@ -72,7 +75,7 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
 
     setState(() {
       _message = '';
-      studentRecords = []; // Clear previous records
+      studentRecords = [];
     });
 
     try {
@@ -86,6 +89,8 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
           'Authorization': 'Bearer ${widget.token}',
         },
       );
+      debugPrint('GET Response Status: ${response.statusCode}');
+      debugPrint('GET Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final List<dynamic> students = json.decode(response.body);
@@ -101,6 +106,8 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
               return {
                 'enrollNo': student['enrollNo'],
                 'name': '${student['fName']} ${student['lName']}',
+                'rollNo': student['rollNo'],
+
                 'status': 'P', // Default status to 'Present'
               };
             }).toList();
@@ -119,9 +126,9 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
   }
 
   Future<void> _submitAttendance() async {
-    if (studentRecords.isEmpty) {
+    if (studentRecords.isEmpty || _dateController.text.isEmpty) {
       setState(() {
-        _message = 'No student records to submit.';
+        _message = 'Please select all required fields.';
       });
       return;
     }
@@ -134,6 +141,7 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
     final Map<String, dynamic> data = {
       'courseId': _selectedCourseId,
       'time': _timeController.text,
+      'date': _dateController.text,
       'year': _selectedYear,
       'section': _selectedSection,
       'attendanceRecords': studentRecords,
@@ -149,6 +157,8 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
         },
         body: json.encode(data),
       );
+      debugPrint('GET Response Status: ${response.statusCode}');
+      debugPrint('GET Response Body: ${response.body}');
       if (response.statusCode == 200 || response.statusCode == 201) {
         setState(() {
           _message = 'Attendance recorded successfully!';
@@ -174,9 +184,25 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
 
   void _resetForm() {
     _timeController.clear();
+    _dateController.clear();
     _selectedCourseId = null;
     _selectedYear = null;
     _selectedSection = null;
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != DateTime.now()) {
+      setState(() {
+        _dateController.text =
+            "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+      });
+    }
   }
 
   List<Map<String, dynamic>> _getFilteredCourses() {
@@ -194,9 +220,9 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Attendance Management'),
-        backgroundColor: Colors.teal[50],
+        backgroundColor: Color(0xFFE0F7FA), // Change top bar color
       ),
-      backgroundColor: Colors.teal[50],
+      backgroundColor: Color(0xFFE0F7FA), // Change background color
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
@@ -209,6 +235,7 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
               _buildCourseDropdown(),
               _buildTextField(_timeController, 'Time (HH:MM AM/PM)',
                   TextInputType.datetime),
+              _buildDateField(),
               SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _fetchStudentList,
@@ -255,24 +282,45 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
     );
   }
 
-  Widget _buildCourseDropdown() {
+  InputDecoration _inputDecoration() {
+    return InputDecoration(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20), // More rounded corners
+        borderSide: BorderSide(color: Colors.grey),
+      ),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: EdgeInsets.all(10),
+    );
+  }
+
+  Widget _buildDateField() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: DropdownButtonFormField<int>(
-        value: _selectedCourseId,
-        hint: Text('Select Course'),
-        decoration: _inputDecoration(),
-        items: _getFilteredCourses().map((course) {
-          return DropdownMenuItem<int>(
-            value: course['id'],
-            child: Text(course['name']),
-          );
-        }).toList(),
-        onChanged: (value) {
-          setState(() {
-            _selectedCourseId = value;
-          });
-        },
+      child: TextField(
+        controller: _dateController,
+        readOnly: true,
+        decoration: _inputDecoration().copyWith(
+          labelText: 'Date',
+          suffixIcon: IconButton(
+            icon: Icon(Icons.calendar_today),
+            onPressed: () => _selectDate(context),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+      TextEditingController controller, String label, TextInputType inputType) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextField(
+        controller: controller,
+        keyboardType: inputType,
+        decoration: _inputDecoration().copyWith(
+          labelText: label,
+        ),
       ),
     );
   }
@@ -282,21 +330,20 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: DropdownButtonFormField<int>(
         value: _selectedYear,
-        hint: Text('Select Year'),
-        decoration: _inputDecoration(),
-        items: [1, 2].map((year) {
-          return DropdownMenuItem<int>(
-            value: year,
-            child: Text('Year $year'),
-          );
-        }).toList(),
+        items: List.generate(2, (index) => index + 1)
+            .map((year) => DropdownMenuItem(
+                  value: year,
+                  child: Text('Year $year'),
+                ))
+            .toList(),
         onChanged: (value) {
           setState(() {
             _selectedYear = value;
-            _selectedCourseId =
-                null; // Reset course selection when year changes
+            _selectedSection = null; // Reset section when year changes
+            _selectedCourseId = null; // Reset course when year changes
           });
         },
+        decoration: _inputDecoration().copyWith(labelText: 'Select Year'),
       ),
     );
   }
@@ -306,86 +353,103 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: DropdownButtonFormField<String>(
         value: _selectedSection,
-        hint: Text('Select Section'),
-        decoration: _inputDecoration(),
-        items: ['A', 'B'].map((section) {
-          return DropdownMenuItem<String>(
-            value: section,
-            child: Text('Section $section'),
-          );
-        }).toList(),
+        items: ['A', 'B']
+            .map((section) => DropdownMenuItem(
+                  value: section,
+                  child: Text('Section $section'),
+                ))
+            .toList(),
         onChanged: (value) {
           setState(() {
             _selectedSection = value;
+            _selectedCourseId = null; // Reset course when section changes
           });
         },
+        decoration: _inputDecoration().copyWith(labelText: 'Select Section'),
       ),
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label,
-      TextInputType keyboardType) {
+  Widget _buildCourseDropdown() {
+    final filteredCourses = _getFilteredCourses();
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        decoration: _inputDecoration().copyWith(labelText: label),
-      ),
-    );
-  }
-
-  InputDecoration _inputDecoration() {
-    return InputDecoration(
-      filled: true,
-      fillColor: Colors.white,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
+      child: DropdownButtonFormField<int>(
+        value: _selectedCourseId,
+        items: filteredCourses
+            .map<DropdownMenuItem<int>>((course) => DropdownMenuItem<int>(
+                  value: course['id'] as int,
+                  child: Text(course['name']),
+                ))
+            .toList(),
+        onChanged: (value) {
+          setState(() {
+            _selectedCourseId = value;
+          });
+        },
+        decoration: _inputDecoration().copyWith(labelText: 'Select Course'),
       ),
     );
   }
 
   Widget _buildStudentAttendanceList() {
     return Column(
-      children: studentRecords.map((student) {
-        return ListTile(
-          title: Text(student['name']),
-          subtitle: Text('Enrollment No: ${student['enrollNo']}'),
-          trailing: DropdownButton<String>(
-            value: student['status'],
-            items: ['P', 'A', 'L'].map((status) {
-              return DropdownMenuItem<String>(
-                value: status,
-                child: Text(
-                  status == 'P'
-                      ? 'Present'
-                      : status == 'A'
-                          ? 'Absent'
-                          : 'Leave',
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+                child: Text('Roll No',
+                    style: TextStyle(fontWeight: FontWeight.bold))),
+            Expanded(
+                child: Text('Name',
+                    style: TextStyle(fontWeight: FontWeight.bold))),
+            Expanded(
+                child: Text('Status',
+                    style: TextStyle(fontWeight: FontWeight.bold))),
+          ],
+        ),
+        SizedBox(height: 8), // Add some space between headings and the list
+        ListView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: studentRecords.length,
+          itemBuilder: (context, index) {
+            final student = studentRecords[index];
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(child: Text('${student['rollNo']}')),
+                Expanded(child: Text(student['name'])),
+                DropdownButton<String>(
+                  value: student['status'],
+                  items: [
+                    DropdownMenuItem(value: 'P', child: Text('Present')),
+                    DropdownMenuItem(value: 'A', child: Text('Absent')),
+                    DropdownMenuItem(value: 'L', child: Text('Leave')),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      student['status'] = value!;
+                    });
+                  },
                 ),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                student['status'] = value!;
-              });
-            },
-          ),
-        );
-      }).toList(),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Text(
+        title,
+        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      ),
     );
   }
 }
