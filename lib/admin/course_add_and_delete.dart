@@ -304,14 +304,22 @@ class _CourseAddAndDeletePageState extends State<CourseAddAndDeletePage> {
               itemBuilder: (context, index) {
                 final course = courses[index];
                 return Card(
-                  elevation: 2,
+                  elevation: 5,
                   margin:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                   child: ListTile(
-                    contentPadding: const EdgeInsets.all(12),
-                    title: Text(course['name'],
-                        style: Theme.of(context).textTheme.titleLarge),
-                    subtitle: Text('Code: ${course['courseId']}'),
+                    contentPadding: const EdgeInsets.all(8), // Reduced padding
+                    title: Text(
+                      course['name'],
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium // Adjusted font size
+                          ?.copyWith(fontSize: 18), // Smaller font size
+                    ),
+                    subtitle: Text(
+                      'Code: ${course['courseId']}',
+                      style: TextStyle(fontSize: 11), // Smaller font size
+                    ),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {

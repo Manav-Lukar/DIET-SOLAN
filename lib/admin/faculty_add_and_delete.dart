@@ -13,7 +13,7 @@ class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
   List<Map<String, dynamic>> faculty = [];
   List<Map<String, dynamic>> courses = [];
   bool isLoading = true;
-  List<String> selectedCourses = []; // Store selected course IDs
+  List<String> selectedCourses = [];
 
   final String apiUrl =
       'https://student-attendance-system-ckb1.onrender.com/api/faculty/show-faculty';
@@ -113,7 +113,8 @@ class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
     }
   }
 
-  Future<void> _deleteFaculty(int index, String id) async {
+  Future<void> _deleteFacultyByNameAndEmail(
+      int index, String name, String email) async {
     final token = await _getToken();
 
     if (token == null) {
@@ -122,11 +123,16 @@ class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
     }
 
     try {
-      final uri = Uri.parse('$deleteFacultyApiUrl?id=$id');
-
       final response = await http.delete(
-        uri,
-        headers: {'Authorization': 'Bearer $token'},
+        Uri.parse('$deleteFacultyApiUrl'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'name': name,
+          'email': email,
+        }),
       );
 
       if (response.statusCode == 200) {
@@ -140,6 +146,72 @@ class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
     } catch (e) {
       _showSnackBar('Error: $e');
     }
+  }
+
+  void _showDeleteFacultyDialog(int index) {
+    final _formKey = GlobalKey<FormState>();
+    final _nameController = TextEditingController();
+    final _emailController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Faculty'),
+        content: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Name',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Please enter the name'
+                      : null,
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 10.0),
+                  child: TextFormField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Please enter the email'
+                        : null,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              if (_formKey.currentState?.validate() ?? false) {
+                _deleteFacultyByNameAndEmail(
+                  index,
+                  _nameController.text,
+                  _emailController.text,
+                );
+                Navigator.of(context).pop();
+              }
+            },
+            child: const Text('Delete'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _addFaculty(Map<String, dynamic> facultyData) async {
@@ -417,12 +489,12 @@ class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
     );
   }
 
- @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Manage Faculty'),
-        backgroundColor: const Color(0xFFE0F7FA),
+        title: const Text('Faculty Management'),
+        backgroundColor: const Color(0xFFE0F7FA), // Set AppBar color
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -430,48 +502,33 @@ class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
           ),
         ],
       ),
-      backgroundColor: const Color(0xFFE0F7FA),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: faculty.length,
-              itemBuilder: (context, index) {
-                final facultyMember = faculty[index];
-                return Card(
-                  margin: const EdgeInsets.all(8.0),
-                  elevation: 4,
-                  child: ListTile(
-                    title: Text(facultyMember['name']),
-                    subtitle: Text(facultyMember['email']),
-                    onTap: () => _showFacultyDetails(facultyMember),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Delete Faculty'),
-                          content: const Text(
-                              'Are you sure you want to delete this faculty member?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                                _deleteFaculty(index, facultyMember['id']);
-                              },
-                              child: const Text('Delete'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: const Text('Cancel'),
-                            ),
-                          ],
-                        ),
+      body: Container(
+        color: const Color(0xFFE0F7FA), // Set background color
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : ListView.builder(
+                itemCount: faculty.length,
+                itemBuilder: (context, index) {
+                  elevation:
+                  5;
+
+                  final fac = faculty[index];
+                  return Card(
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 7, horizontal: 10),
+                    child: ListTile(
+                      title: Text(fac['name']),
+                      subtitle: Text('Email: ${fac['email']}'),
+                      onTap: () => _showFacultyDetails(fac),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => _showDeleteFacultyDialog(index),
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
+                  );
+                },
+              ),
+      ),
     );
   }
 }
