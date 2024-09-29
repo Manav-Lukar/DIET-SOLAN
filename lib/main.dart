@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         ),
         textTheme: GoogleFonts.latoTextTheme(),
       ),
-      home: const SplashScreen(), // Set SplashScreen as the initial screen
+      home: const SplashScreen(), //  SplashScreen 
     );
   }
 }

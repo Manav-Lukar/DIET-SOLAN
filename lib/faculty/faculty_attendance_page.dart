@@ -219,10 +219,10 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Attendance Management'),
-        backgroundColor: Color(0xFFE0F7FA), // Change top bar color
+        title: const Text('Attendance Management'),
+        backgroundColor: const Color(0xFFE0F7FA), // Change top bar color
       ),
-      backgroundColor: Color(0xFFE0F7FA), // Change background color
+      backgroundColor: const Color(0xFFE0F7FA), // Change background color
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
@@ -236,35 +236,35 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
               _buildTextField(_timeController, 'Time (HH:MM AM/PM)',
                   TextInputType.datetime),
               _buildDateField(),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _fetchStudentList,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                 ),
                 child:
-                    Text('Fetch Student List', style: TextStyle(fontSize: 16)),
+                    const Text('Fetch Student List', style: TextStyle(fontSize: 16)),
               ),
               if (studentRecords.isNotEmpty) ...[
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 _buildSectionTitle('Mark Attendance'),
                 _buildStudentAttendanceList(),
               ],
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               _isSubmitting
-                  ? Center(child: CircularProgressIndicator())
+                  ? const Center(child: CircularProgressIndicator())
                   : ElevatedButton(
                       onPressed: _submitAttendance,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         padding:
-                            EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                            const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                       ),
-                      child: Text('Submit Attendance',
+                      child: const Text('Submit Attendance',
                           style: TextStyle(fontSize: 16)),
                     ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               if (_message.isNotEmpty)
                 Text(
                   _message,
@@ -286,11 +286,11 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
     return InputDecoration(
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20), // More rounded corners
-        borderSide: BorderSide(color: Colors.grey),
+        borderSide: const BorderSide(color: Colors.grey),
       ),
       filled: true,
       fillColor: Colors.white,
-      contentPadding: EdgeInsets.all(10),
+      contentPadding: const EdgeInsets.all(10),
     );
   }
 
@@ -303,7 +303,7 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
         decoration: _inputDecoration().copyWith(
           labelText: 'Date',
           suffixIcon: IconButton(
-            icon: Icon(Icons.calendar_today),
+            icon: const Icon(Icons.calendar_today),
             onPressed: () => _selectDate(context),
           ),
         ),
@@ -396,7 +396,7 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
@@ -410,10 +410,10 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
                     style: TextStyle(fontWeight: FontWeight.bold))),
           ],
         ),
-        SizedBox(height: 8), // Add some space between headings and the list
+        const SizedBox(height: 8), // Add some space between headings and the list
         ListView.builder(
           shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           itemCount: studentRecords.length,
           itemBuilder: (context, index) {
             final student = studentRecords[index];
@@ -425,9 +425,9 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
                 DropdownButton<String>(
                   value: student['status'],
                   items: [
-                    DropdownMenuItem(value: 'P', child: Text('Present')),
-                    DropdownMenuItem(value: 'A', child: Text('Absent')),
-                    DropdownMenuItem(value: 'L', child: Text('Leave')),
+                    const DropdownMenuItem(value: 'P', child: Text('Present')),
+                    const DropdownMenuItem(value: 'A', child: Text('Absent')),
+                    const DropdownMenuItem(value: 'L', child: Text('Leave')),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -448,7 +448,7 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Text(
         title,
-        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
     );
   }
