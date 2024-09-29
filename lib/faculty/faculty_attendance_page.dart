@@ -124,71 +124,85 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
       });
     }
   }
-
-  Future<void> _submitAttendance() async {
-    if (studentRecords.isEmpty || _dateController.text.isEmpty) {
-      setState(() {
-        _message = 'Please select all required fields.';
-      });
-      return;
-    }
-
+Future<void> _submitAttendance() async {
+  if (studentRecords.isEmpty || _dateController.text.isEmpty) {
     setState(() {
-      _isSubmitting = true;
-      _message = '';
+      _message = 'Please fill in all required fields.';
     });
+    return;
+  }
 
-    final Map<String, dynamic> data = {
-      'courseId': _selectedCourseId,
-      'time': _timeController.text,
-      'date': _dateController.text,
-      'year': _selectedYear,
-      'section': _selectedSection,
-      'attendanceRecords': studentRecords,
-    };
+  setState(() {
+    _isSubmitting = true;
+    _message = '';
+  });
 
-    try {
-      final response = await http.post(
-        Uri.parse(
-            'https://student-attendance-system-ckb1.onrender.com/api/attendance/record-new'),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'Content-Type': 'application/json',
-        },
-        body: json.encode(data),
-      );
-      debugPrint('GET Response Status: ${response.statusCode}');
-      debugPrint('GET Response Body: ${response.body}');
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        setState(() {
-          _message = 'Attendance recorded successfully!';
-          studentRecords.clear();
-          _resetForm();
-        });
-      } else {
-        setState(() {
-          _message =
-              'Failed to record attendance. Status code: ${response.statusCode}, Error: ${response.body}';
-        });
-      }
-    } catch (e) {
+  final Map<String, dynamic> data = {
+    'courseId': _selectedCourseId,
+    'time': _timeController.text,
+    'date': _dateController.text,
+    'year': _selectedYear,
+    'section': _selectedSection,
+    'attendanceRecords': studentRecords,
+  };
+
+  try {
+    final response = await http.post(
+      Uri.parse(
+          'https://student-attendance-system-ckb1.onrender.com/api/attendance/record-new'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(data),
+    );
+
+    debugPrint('Response Status: ${response.statusCode}');
+    debugPrint('Response Body: ${response.body}');
+
+    // Handle successful response
+    if (response.statusCode == 200 || response.statusCode == 201) {
       setState(() {
-        _message = 'Error recording attendance: ${e.toString()}';
+        _message = 'Attendance recorded successfully!';
+        studentRecords.clear();
+        _resetForm();
       });
-    } finally {
+    } else if (response.statusCode == 409) {
+      // Handle attendance already exists case (assuming 409 status for conflict)
       setState(() {
-        _isSubmitting = false;
+        _message = 'Attendance already exists for the selected date and section.';
+      });
+    } else {
+      // Handle other server-side errors
+      setState(() {
+        _message = 'Failed to record attendance. Please try again later.';
       });
     }
+  } catch (e) {
+    // Handle specific errors (e.g., network issues, timeout)
+    if (e.toString().contains('SocketException')) {
+      setState(() {
+        _message = 'Network error. Please check your internet connection.';
+      });
+    } else {
+      setState(() {
+        _message = 'Error occurred: ${e.toString()}';
+      });
+    }
+  } finally {
+    setState(() {
+      _isSubmitting = false;
+    });
   }
+}
 
-  void _resetForm() {
-    _timeController.clear();
-    _dateController.clear();
-    _selectedCourseId = null;
-    _selectedYear = null;
-    _selectedSection = null;
-  }
+void _resetForm() {
+  _timeController.clear();
+  _dateController.clear();
+  _selectedCourseId = null;
+  _selectedYear = null;
+  _selectedSection = null;
+}
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
