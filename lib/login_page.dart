@@ -49,9 +49,33 @@ class _LoginPageState extends State<LoginPage>
   }
 
 Future<void> _loginUser(BuildContext context) async {
+  // Reset the error message
+  setState(() {
+    _errorMessage = '';
+  });
+
+  // Check if a role is selected
   if (_selectedRole == null) {
     setState(() {
-      _errorMessage = 'Please select a role';
+      _errorMessage = 'Please select a valid role';
+    });
+    return;
+  }
+
+  // Check if username input is empty
+  String usernameInput = _usernameController.text.trim();
+  if (usernameInput.isEmpty) {
+    setState(() {
+      _errorMessage = _selectedRole == 'Student' ? 'Please enter your enroll number' : 'Please enter your email';
+    });
+    return;
+  }
+
+  // Check if password input is empty
+  String passwordInput = _passwordController.text.trim();
+  if (passwordInput.isEmpty) {
+    setState(() {
+      _errorMessage = 'Please enter your password';
     });
     return;
   }
@@ -60,7 +84,6 @@ Future<void> _loginUser(BuildContext context) async {
     _isLoading = true;
   });
 
-  String usernameInput = _usernameController.text.trim();
   late String apiUrl;
   late String successRole;
   late Map<String, dynamic> requestBody;
@@ -80,7 +103,7 @@ Future<void> _loginUser(BuildContext context) async {
     return;
   }
 
-  requestBody['password'] = _passwordController.text.trim();
+  requestBody['password'] = passwordInput;
   requestBody['role'] = successRole;
 
   try {
@@ -96,7 +119,6 @@ Future<void> _loginUser(BuildContext context) async {
     print('Response body: ${response.body}');
 
     final data = jsonDecode(response.body);
-
     String detailsKey = successRole == 'Admin' ? 'facultyDetails' : '${successRole.toLowerCase()}Details';
 
     if (response.statusCode == 200) {
@@ -110,6 +132,7 @@ Future<void> _loginUser(BuildContext context) async {
           await _saveToken(token);
         }
 
+        // Navigate to the appropriate home page based on role
         if (successRole == 'Admin') {
           final adminName = userDetails['Name'];
           final adminEmail = userDetails['email'];
@@ -121,25 +144,24 @@ Future<void> _loginUser(BuildContext context) async {
                 adminInfo: {
                   'name': adminName ?? 'Admin',
                   'email': adminEmail ?? '',
-                }, name: null, 
+                },
+                name: null,
               ),
             ),
           );
         } else if (successRole == 'Faculty') {
-          // Get faculty details from the response
           final facultyName = userDetails['Name'];
           final facultyEmail = userDetails['email'];
           final coursesTeaching = userDetails['coursesTeaching'] ?? [];
           final classesTeaching = userDetails['classesTeaching'] ?? [];
 
-          // Navigate to the FacultyHomePage with full faculty details
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => FacultyHomePage(
                 username: facultyName ?? 'Faculty',
                 email: facultyEmail ?? '',
-                notices: [], // Adjust as per your app logic
+                notices: [],
                 facultyName: facultyName,
                 token: token ?? '',
                 coursesTeaching: coursesTeaching,
@@ -150,7 +172,7 @@ Future<void> _loginUser(BuildContext context) async {
                   'coursesTeaching': coursesTeaching,
                   'classesTeaching': classesTeaching,
                   'role': userDetails['role'],
-                }, // Pass the full faculty details for the personal info dialog
+                },
               ),
             ),
           );
@@ -166,7 +188,7 @@ Future<void> _loginUser(BuildContext context) async {
             MaterialPageRoute(
               builder: (context) => StudentHomePage(
                 username: _usernameController.text,
-                notices: const [], // Adjust as needed
+                notices: const [],
                 studentDetails: userDetails,
                 studentName: '${userDetails['fName']} ${userDetails['lName']}',
                 rollNo: userDetails['rollNo'].toString(),
@@ -181,19 +203,32 @@ Future<void> _loginUser(BuildContext context) async {
         }
       } else {
         setState(() {
-          _errorMessage = 'Invalid role or data format';
+          _errorMessage = 'User not found';
         });
       }
     } else {
-      setState(() {
-        _errorMessage = 'Invalid email or password';
-      });
+      // Handle specific error messages based on response body
+      if (data is String && data.contains('Invalid Credentials')) {
+        setState(() {
+          _errorMessage = 'Wrong email/enroll number or password';
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Login failed. Please try again.';
+        });
+      }
     }
   } catch (e) {
     print('Error: $e');
-    setState(() {
-      _errorMessage = 'Error: $e';
-    });
+    if (e is FormatException) {
+      setState(() {
+        _errorMessage = 'User not found or invalid login';
+      });
+    } else {
+      setState(() {
+        _errorMessage = 'Error: $e';
+      });
+    }
   } finally {
     setState(() {
       _isLoading = false;
