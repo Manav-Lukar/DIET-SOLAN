@@ -68,7 +68,7 @@ class _UpdateRemoveAttendancePageState
       return;
     }
 
-    final url = 'https://student-attendance-system-ckb1.onrender.com/api/attendance/remove-record';
+    final url = 'https://attendance-management-system-jdbc.onrender.com/api/attendance/remove-record';
 
     setState(() {
       _isLoading = true;

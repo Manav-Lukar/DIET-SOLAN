@@ -16,13 +16,13 @@ class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
   List<String> selectedCourses = [];
 
   final String apiUrl =
-      'https://student-attendance-system-ckb1.onrender.com/api/faculty/show-faculty';
+      'https://attendance-management-system-jdbc.onrender.com/api/faculty/show-faculty';
   final String addFacultyApiUrl =
-      'https://student-attendance-system-ckb1.onrender.com/api/faculty/add-faculty';
+      'https://attendance-management-system-jdbc.onrender.com/api/faculty/add-faculty';
   final String deleteFacultyApiUrl =
-      'https://student-attendance-system-ckb1.onrender.com/api/faculty/remove-faculty';
+      'https://attendance-management-system-jdbc.onrender.com/api/faculty/remove-faculty';
   final String coursesApiUrl =
-      'https://student-attendance-system-ckb1.onrender.com/api/course/show-courses';
+      'https://attendance-management-system-jdbc.onrender.com/api/course/show-courses';
 
   @override
   void initState() {

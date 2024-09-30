@@ -89,11 +89,11 @@ Future<void> _loginUser(BuildContext context) async {
   late Map<String, dynamic> requestBody;
 
   if (_selectedRole == 'Faculty' || _selectedRole == 'Admin') {
-    apiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/faculty/faculty-login';
+    apiUrl = 'https://attendance-management-system-jdbc.onrender.com/api/faculty/faculty-login';
     successRole = _selectedRole!;
     requestBody = {'email': usernameInput};
   } else if (_selectedRole == 'Student') {
-    apiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/student/student-login';
+    apiUrl = 'https://attendance-management-system-jdbc.onrender.com/api/student/student-login';
     successRole = 'Student';
     requestBody = {'enrollNo': int.tryParse(usernameInput) ?? 0};
   } else {

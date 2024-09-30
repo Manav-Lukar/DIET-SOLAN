@@ -76,7 +76,7 @@ class _ClassAttendancePageState extends State<ClassAttendancePage> {
       final String token = widget.token;
 
       final response = await http.get(
-        Uri.parse('https://student-attendance-system-ckb1.onrender.com/api/attendance/show-attendance-student/$enrollNo'),
+        Uri.parse('https://attendance-management-system-jdbc.onrender.com/api/attendance/show-attendance-student/$enrollNo'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

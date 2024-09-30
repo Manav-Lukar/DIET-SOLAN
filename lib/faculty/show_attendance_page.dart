@@ -40,7 +40,7 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
 
   Future<void> _fetchCourses() async {
     final url = Uri.parse(
-        'https://student-attendance-system-ckb1.onrender.com/api/course/show-courses');
+        'https://attendance-management-system-jdbc.onrender.com/api/course/show-courses');
 
     setState(() {
       _isLoading = true;
@@ -88,7 +88,7 @@ class _ShowAttendancePageState extends State<ShowAttendancePage> {
     }
 
     final url = Uri.parse(
-        'https://student-attendance-system-ckb1.onrender.com/api/attendance/show-attendance-faculty/$_selectedCourseId/$year/$section');
+        'https://attendance-management-system-jdbc.onrender.com/api/attendance/show-attendance-faculty/$_selectedCourseId/$year/$section');
 
     setState(() {
       _isLoading = true;

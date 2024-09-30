@@ -26,7 +26,7 @@ class AcademicDetailsPage extends StatefulWidget {
 
 class _AcademicDetailsPageState extends State<AcademicDetailsPage> {
   List<String> _courses = [];
-  final String coursesApiUrl = 'https://student-attendance-system-ckb1.onrender.com/api/course/show-courses';
+  final String coursesApiUrl = 'https://attendance-management-system-jdbc.onrender.com/api/course/show-courses';
 
   @override
   void initState() {

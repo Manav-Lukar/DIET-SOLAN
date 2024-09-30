@@ -80,7 +80,7 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
 
     try {
       final url = Uri.parse(
-        'https://student-attendance-system-ckb1.onrender.com/api/student/get-students/${_selectedYear}/${_selectedSection}/${_selectedCourseId}',
+        'https://attendance-management-system-jdbc.onrender.com/api/student/get-students/${_selectedYear}/${_selectedSection}/${_selectedCourseId}',
       );
 
       final response = await http.get(
@@ -149,7 +149,7 @@ Future<void> _submitAttendance() async {
   try {
     final response = await http.post(
       Uri.parse(
-          'https://student-attendance-system-ckb1.onrender.com/api/attendance/record-new'),
+          'https://attendance-management-system-jdbc.onrender.com/api/attendance/record-new'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'Content-Type': 'application/json',

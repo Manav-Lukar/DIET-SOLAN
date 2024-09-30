@@ -13,11 +13,11 @@ class _CourseAddAndDeletePageState extends State<CourseAddAndDeletePage> {
   bool isLoading = true;
 
   final String apiUrl =
-      'https://student-attendance-system-ckb1.onrender.com/api/course/show-courses';
+      'https://attendance-management-system-jdbc.onrender.com/api/course/show-courses';
   final String addCourseApiUrl =
-      'https://student-attendance-system-ckb1.onrender.com/api/course/add-course';
+      'https://attendance-management-system-jdbc.onrender.com/api/course/add-course';
   final String deleteCourseApiUrl =
-      'https://student-attendance-system-ckb1.onrender.com/api/course/remove-course';
+      'https://attendance-management-system-jdbc.onrender.com/api/course/remove-course';
 
   @override
   void initState() {
