@@ -28,6 +28,8 @@ dependencies:
   fluttertoast: ^8.2.6
   pdf: ^3.11.1
   printing: ^5.13.2
+  flutter_multiselect: ^1.0.0
+  multi_select_flutter: ^4.1.3
 
   
 

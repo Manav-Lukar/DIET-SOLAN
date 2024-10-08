@@ -49,6 +49,8 @@ class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
         Uri.parse(coursesApiUrl),
         headers: {'Authorization': 'Bearer $token'},
       );
+      print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as List;
@@ -320,7 +322,7 @@ class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Add New Faculty'),
+          title: const Text('Add New Faculty/Admin'),
           content: SingleChildScrollView(
             child: Form(
               key: _formKey,
@@ -397,7 +399,7 @@ class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
                         labelText: 'Year',
                         border: OutlineInputBorder(),
                       ),
-                      items: ['1', '2', '3', '4'].map((year) {
+                      items: ['1', '2'].map((year) {
                         return DropdownMenuItem(
                           value: year,
                           child: Text(year),
@@ -418,7 +420,7 @@ class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
                         labelText: 'Section',
                         border: OutlineInputBorder(),
                       ),
-                      items: ['A', 'B', 'C'].map((section) {
+                      items: ['A', 'B'].map((section) {
                         return DropdownMenuItem(
                           value: section,
                           child: Text(section),

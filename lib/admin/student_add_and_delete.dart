@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
+import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,6 +13,9 @@ class StudentAddAndDeletePage extends StatefulWidget {
 
 class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
   List<Map<String, dynamic>> students = [];
+  List<Map<String, dynamic>> courses = [];
+  List<String> selectedCourses = [];
+
   bool isLoading = true;
 
   final String apiUrl =
@@ -19,6 +24,8 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
       'https://attendance-management-system-jdbc.onrender.com/api/student/new-student';
   final String removeStudentApiUrl =
       'https://attendance-management-system-jdbc.onrender.com/api/student/remove-student';
+  final String coursesApiUrl =
+      'https://attendance-management-system-jdbc.onrender.com/api/course/show-courses';
 
   @override
   void initState() {
@@ -29,6 +36,40 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
+  }
+
+  Future<void> _fetchCourses() async {
+    final token = await _getToken();
+
+    if (token == null) {
+      _showSnackBar('No token found');
+      return;
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse(coursesApiUrl),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as List;
+        setState(() {
+          courses = data
+              .map((course) => {
+                    'id': course['courseId'].toString() ?? '',
+                    'name': course['courseName'] ?? 'No name',
+                  })
+              .toList();
+        });
+      } else {
+        // _handleHttpError(response);
+      }
+    } catch (e) {
+      _showSnackBar('Error: $e');
+    }
   }
 
   Future<void> _fetchStudents() async {
@@ -80,49 +121,50 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
     }
   }
 
-Future<void> _deleteStudent(int index, int enrollNo) async {
-  final token = await _getToken();
+  Future<void> _deleteStudent(int index, int enrollNo) async {
+    final token = await _getToken();
 
-  if (token == null) {
-    _showSnackBar('No token found');
-    return;
-  }
-
-  try {
-    final uri = Uri.parse('$removeStudentApiUrl?enrollNo=$enrollNo');
-
-    // Print request details
-    print('Deleting student with enrollNo: $enrollNo');
-    print('Request URL: $uri');
-    print('Authorization Header: Bearer $token');
-
-    final response = await http.delete(
-      uri,
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
-    );
-
-    // Print detailed response for debugging
-    print('Delete Student Response Status: ${response.statusCode}');
-    print('Delete Student Response Body: ${response.body}');
-    print('Delete Student Response Headers: ${response.headers}');  // Print response headers
-
-    if (response.statusCode == 200) {
-      setState(() {
-        students.removeAt(index);
-      });
-      _showSnackBar('Student deleted successfully');
-    } else {
-      final responseBody = json.decode(response.body);
-      final errorMessage = responseBody['message'] ?? 'Failed to delete student';
-      _showSnackBar(errorMessage);
+    if (token == null) {
+      _showSnackBar('No token found');
+      return;
     }
-  } catch (e) {
-    _showSnackBar('Error: $e');
-  }
-}
 
+    try {
+      final uri = Uri.parse('$removeStudentApiUrl?enrollNo=$enrollNo');
+
+      // Print request details
+      print('Deleting student with enrollNo: $enrollNo');
+      print('Request URL: $uri');
+      print('Authorization Header: Bearer $token');
+
+      final response = await http.delete(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      // Print detailed response for debugging
+      print('Delete Student Response Status: ${response.statusCode}');
+      print('Delete Student Response Body: ${response.body}');
+      print(
+          'Delete Student Response Headers: ${response.headers}'); // Print response headers
+
+      if (response.statusCode == 200) {
+        setState(() {
+          students.removeAt(index);
+        });
+        _showSnackBar('Student deleted successfully');
+      } else {
+        final responseBody = json.decode(response.body);
+        final errorMessage =
+            responseBody['message'] ?? 'Failed to delete student';
+        _showSnackBar(errorMessage);
+      }
+    } catch (e) {
+      _showSnackBar('Error: $e');
+    }
+  }
 
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context)
@@ -223,16 +265,45 @@ Future<void> _deleteStudent(int index, int enrollNo) async {
       'lName': TextEditingController(),
       'email': TextEditingController(),
       'enrollNo': TextEditingController(),
-      'year': TextEditingController(),
-      'section': TextEditingController(),
       'fatherName': TextEditingController(),
       'motherName': TextEditingController(),
-      'dob': TextEditingController(),
       'rollNo': TextEditingController(),
-      'gender': TextEditingController(),
       'parentsContact': TextEditingController(),
       'password': TextEditingController(),
+      'dob': TextEditingController(), // Add DOB controller
     };
+
+    String selectedYear = '1'; // Default selected year
+    String selectedSection = 'A'; // Default selected section
+    String selectedGender = 'M'; // Default selected gender
+    List<Map<String, dynamic>> selectedCourses = []; // To hold selected courses
+
+    // List of courses
+ List<Map<String, dynamic>> courses = [
+    {"courseId": 101, "courseName": "Education Technology", "year": 1},
+    {"courseId": 102, "courseName": "Psychology", "year": 1},
+    {"courseId": 103, "courseName": "Maths", "year": 1},
+    {"courseId": 104, "courseName": "Education 102", "year": 1},
+    {"courseId": 105, "courseName": "EVS", "year": 1},
+    {"courseId": 106, "courseName": "Hindi", "year": 1},
+    {"courseId": 107, "courseName": "Work Education", "year": 1},
+    {"courseId": 108, "courseName": "Physical Education", "year": 1},
+    {"courseId": 109, "courseName": "English", "year": 1},
+    {"courseId": 110, "courseName": "Fine Art", "year": 1},
+    {"courseId": 111, "courseName": "Music", "year": 1},
+    {"courseId": 112, "courseName": "Education103", "year": 1},
+    {"courseId": 201, "courseName": "Psychology", "year": 2},
+    {"courseId": 202, "courseName": "English", "year": 2},
+    {"courseId": 203, "courseName": "Maths", "year": 2},
+    {"courseId": 204, "courseName": "Hindi", "year": 2},
+    {"courseId": 205, "courseName": "Fine Arts", "year": 2},
+    {"courseId": 206, "courseName": "Music", "year": 2},
+    {"courseId": 207, "courseName": "Physical Education", "year": 2},
+    {"courseId": 208, "courseName": "Social Science", "year": 2},
+    {"courseId": 209, "courseName": "Education", "year": 2},
+    {"courseId": 210, "courseName": "Planning and Management", "year": 2},
+    {"courseId": 211, "courseName": "Science Education", "year": 2},
+  ];    
 
     showDialog(
       context: context,
@@ -265,11 +336,145 @@ Future<void> _deleteStudent(int index, int enrollNo) async {
                     ),
                   );
                 }).toList(),
+
+                // Year Dropdown
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: DropdownButtonFormField<String>(
+                    value: selectedYear,
+                    decoration: const InputDecoration(
+                      labelText: 'Year',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: ['1', '2'].map((String year) {
+                      return DropdownMenuItem<String>(
+                        value: year,
+                        child: Text(year),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedYear = value ?? '1';
+                      });
+                    },
+                  ),
+                ),
+
+                // Section Dropdown
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: DropdownButtonFormField<String>(
+                    value: selectedSection,
+                    decoration: const InputDecoration(
+                      labelText: 'Section',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: ['A', 'B'].map((String section) {
+                      return DropdownMenuItem<String>(
+                        value: section,
+                        child: Text(section),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedSection = value ?? 'A';
+                      });
+                    },
+                  ),
+                ),
+
+                // Date of Birth Text Field
+                // Padding(
+                //   padding: const EdgeInsets.only(bottom: 10),
+                //   child: TextFormField(
+                //     controller: _controllers['dob'], // Use controller for DOB
+                //     decoration: InputDecoration(
+                //       labelText: 'Date of Birth (DD/MM/YYYY)',
+                //       border: OutlineInputBorder(),
+                //     ),
+                //     keyboardType: TextInputType.datetime,
+                //     validator: (value) {
+                //       final dobPattern = r'^\d{2}/\d{2}/\d{4}$';
+                //       final isValid = RegExp(dobPattern).hasMatch(value ?? '');
+                //       return isValid ? null : 'Please enter a valid DOB';
+                //     },
+                //     onChanged: (value) {
+                //       // Automatically format the date input
+                //       if (value.length == 2 || value.length == 5) {
+                //         _controllers['dob']!.text += '/';
+                //         _controllers['dob']!.selection =
+                //             TextSelection.fromPosition(
+                //           TextPosition(
+                //               offset: _controllers['dob']!.text.length),
+                //         );
+                //       }
+                //     },
+                //   ),
+                // ),
+
+                // Gender Dropdown
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: DropdownButtonFormField<String>(
+                    value: selectedGender,
+                    decoration: const InputDecoration(
+                      labelText: 'Gender',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: ['M', 'F'].map((String gender) {
+                      return DropdownMenuItem<String>(
+                        value: gender,
+                        child: Text(gender == 'M' ? 'Male' : 'Female'),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedGender = value ?? 'M';
+                      });
+                    },
+                  ),
+                ),
+
+                // Courses Dropdown
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: MultiSelectDialogField(
+                    items: courses.map((course) {
+                      return MultiSelectItem(course,
+                          '${course['courseName']} [${course['courseId']}]');
+                    }).toList(),
+                    title: const Text('Select Courses'),
+                    initialValue: selectedCourses,
+                    onConfirm: (values) {
+                      setState(() {
+                        selectedCourses = values.cast<Map<String, dynamic>>();
+                      });
+                    },
+                  ),
+                ),
+
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState?.validate() ?? false) {
-                      final studentData = _controllers.map(
-                          (key, controller) => MapEntry(key, controller.text));
+                      // Create studentData as Map<String, dynamic>
+                      final Map<String, dynamic> studentData = _controllers.map(
+                        (key, controller) => MapEntry(key, controller.text),
+                      );
+
+                      // Adding year and section to studentData
+                      studentData['year'] = selectedYear;
+                      studentData['section'] = selectedSection;
+                      studentData['gender'] =
+                          selectedGender; // Add selected gender
+
+                      // Prepare course data as a list of course IDs
+                      studentData['courses'] = selectedCourses.map((course) {
+                        return course['courseId']; // Only get courseId
+                      }).toList(); // Convert to List<int>
+
+                      // Debug: Print student data for verification
+                      print(studentData);
+
                       _addStudent(studentData);
                       Navigator.of(context).pop();
                     }
