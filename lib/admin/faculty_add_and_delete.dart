@@ -307,189 +307,220 @@ class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
     }
   }
 
-  void _showAddFacultyDialog() {
-    final _formKey = GlobalKey<FormState>();
-    final _nameController = TextEditingController();
-    final _emailController = TextEditingController();
-    final _passwordController = TextEditingController();
-    List<String> selectedYears = [];
-    List<String> selectedSections = [];
-    String selectedYear = '1';
-    String selectedSection = 'A';
-    String selectedRole = 'Faculty'; // Default role
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: const Text('Add New Faculty/Admin'),
-          content: SingleChildScrollView(
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Name',
-                        border: OutlineInputBorder(),
+void _showAddFacultyDialog() {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  
+  List<String> selectedYears = [];
+  List<String> selectedSections = [];
+  
+  String selectedRole = 'Faculty'; // Default role
+  
+  showDialog(
+    context: context,
+    builder: (context) => StatefulBuilder(
+      builder: (context, setState) => AlertDialog(
+        title: const Text('Add New Faculty/Admin'),
+        content: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Name',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Please enter the name'
+                        : null,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: TextFormField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Please enter the email'
+                        : null,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: TextFormField(
+                    controller: _passwordController,
+                    decoration: const InputDecoration(
+                      labelText: 'Password',
+                      border: OutlineInputBorder(),
+                    ),
+                    obscureText: true,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Please enter the password'
+                        : null,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: DropdownButtonFormField<String>(
+                    value: selectedRole,
+                    decoration: const InputDecoration(
+                      labelText: 'Role',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: ['Faculty', 'Admin'].map((role) {
+                      return DropdownMenuItem(
+                        value: role,
+                        child: Text(role),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedRole = value ?? 'Faculty';
+                      });
+                    },
+                  ),
+                ),
+                // Checkbox for selecting multiple years
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Select Years:'),
+                      CheckboxListTile(
+                        title: const Text('1st Year'),
+                        value: selectedYears.contains('1'),
+                        onChanged: (value) {
+                          setState(() {
+                            if (value == true) {
+                              selectedYears.add('1');
+                            } else {
+                              selectedYears.remove('1');
+                            }
+                          });
+                        },
                       ),
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Please enter the name'
-                          : null,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: TextFormField(
-                      controller: _emailController,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        border: OutlineInputBorder(),
+                      CheckboxListTile(
+                        title: const Text('2nd Year'),
+                        value: selectedYears.contains('2'),
+                        onChanged: (value) {
+                          setState(() {
+                            if (value == true) {
+                              selectedYears.add('2');
+                            } else {
+                              selectedYears.remove('2');
+                            }
+                          });
+                        },
                       ),
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Please enter the email'
-                          : null,
-                    ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: TextFormField(
-                      controller: _passwordController,
-                      decoration: const InputDecoration(
-                        labelText: 'Password',
-                        border: OutlineInputBorder(),
+                ),
+                // Checkbox for selecting multiple sections
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Select Sections:'),
+                      CheckboxListTile(
+                        title: const Text('Section A'),
+                        value: selectedSections.contains('A'),
+                        onChanged: (value) {
+                          setState(() {
+                            if (value == true) {
+                              selectedSections.add('A');
+                            } else {
+                              selectedSections.remove('A');
+                            }
+                          });
+                        },
                       ),
-                      obscureText: true,
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Please enter the password'
-                          : null,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: DropdownButtonFormField<String>(
-                      value: selectedRole,
-                      decoration: const InputDecoration(
-                        labelText: 'Role',
-                        border: OutlineInputBorder(),
+                      CheckboxListTile(
+                        title: const Text('Section B'),
+                        value: selectedSections.contains('B'),
+                        onChanged: (value) {
+                          setState(() {
+                            if (value == true) {
+                              selectedSections.add('B');
+                            } else {
+                              selectedSections.remove('B');
+                            }
+                          });
+                        },
                       ),
-                      items: ['Faculty', 'Admin'].map((role) {
-                        return DropdownMenuItem(
-                          value: role,
-                          child: Text(role),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedRole = value ?? 'Faculty';
-                        });
-                      },
-                    ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: DropdownButtonFormField<String>(
-                      value: selectedYear,
-                      decoration: const InputDecoration(
-                        labelText: 'Year',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: ['1', '2'].map((year) {
-                        return DropdownMenuItem(
-                          value: year,
-                          child: Text(year),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedYear = value ?? '1';
-                        });
-                      },
-                    ),
+                ),
+                // Add course selection
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Wrap(
+                    spacing: 8.0,
+                    children: courses.map((course) {
+                      return FilterChip(
+                        label: Text(course['name']),
+                        selected: selectedCourses.contains(course['id']),
+                        onSelected: (selected) {
+                          setState(() {
+                            if (selected) {
+                              selectedCourses.add(course['id']);
+                            } else {
+                              selectedCourses.remove(course['id']);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: DropdownButtonFormField<String>(
-                      value: selectedSection,
-                      decoration: const InputDecoration(
-                        labelText: 'Section',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: ['A', 'B'].map((section) {
-                        return DropdownMenuItem(
-                          value: section,
-                          child: Text(section),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedSection = value ?? 'A';
-                        });
-                      },
-                    ),
-                  ),
-                  // Add course selection
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Wrap(
-                      spacing: 8.0,
-                      children: courses.map((course) {
-                        return FilterChip(
-                          label: Text(course['name']),
-                          selected: selectedCourses.contains(course['id']),
-                          onSelected: (selected) {
-                            setState(() {
-                              if (selected) {
-                                selectedCourses.add(course['id']);
-                              } else {
-                                selectedCourses.remove(course['id']);
-                              }
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                if (_formKey.currentState?.validate() ?? false) {
-                  _addFaculty({
-                    'name': _nameController.text,
-                    'email': _emailController.text,
-                    'password': _passwordController.text,
-                    'role': selectedRole,
-                    'coursesTeaching': selectedCourses,
-                    'classesTeaching': [
-                      {
-                        'year': selectedYear,
-                        'sections': [selectedSection]
-                      },
-                    ],
-                  });
-                  Navigator.of(context).pop();
-                }
-              },
-              child: const Text('Add'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-          ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              if (_formKey.currentState?.validate() ?? false) {
+                _addFaculty({
+                  'name': _nameController.text,
+                  'email': _emailController.text,
+                  'password': _passwordController.text,
+                  'role': selectedRole,
+                  'coursesTeaching': selectedCourses,
+                  'classesTeaching': selectedYears.map((year) {
+                    return {
+                      'year': year,
+                      'sections': selectedSections,
+                    };
+                  }).toList(),
+                });
+                Navigator.of(context).pop();
+              }
+            },
+            child: const Text('Add'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
