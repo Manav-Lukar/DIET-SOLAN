@@ -21,10 +21,6 @@ class FacultyAttendancePage extends StatefulWidget {
 
 class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
   List<Map<String, dynamic>> studentRecords = [];
-  List<Map<String, dynamic>> courses = []; // Add this
-  // ignore: unused_field
-  bool _isLoading = true;
-
   bool _isSubmitting = false;
   String _message = '';
 
@@ -34,45 +30,31 @@ class _FacultyAttendancePageState extends State<FacultyAttendancePage> {
   int? _selectedYear;
   String? _selectedSection;
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchCourses(); 
-  }
-
-  Future<void> _fetchCourses() async {
-    try {
-      final response = await http.get(
-        Uri.parse('https://attendance-management-system-jdbc.onrender.com/api/course/show-courses'),
-        headers: {'Authorization': 'Bearer ${widget.token}'},
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body) as List;
-        setState(() {
-          courses = data.map((course) => {
-            'id': course['courseId'],
-            'name': course['courseName'],
-          }).toList();
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _message = 'Error fetching courses: $e';
-        _isLoading = false;
-      });
-    }
-  }
-
-  List<Map<String, dynamic>> _getFilteredCourses() {
-    if (_selectedYear == 1) {
-      return courses.where((course) => course['id'] < 200).toList();
-    } else if (_selectedYear == 2) {
-      return courses.where((course) => course['id'] >= 200).toList();
-    }
-    return [];
-  }
+  final List<Map<String, dynamic>> _courses = [
+    {'id': 101, 'name': 'Education Technology'},
+    {'id': 102, 'name': 'Psychology'},
+    {'id': 103, 'name': 'Maths'},
+    {'id': 104, 'name': 'Education 102\''},
+    {'id': 105, 'name': 'EVS'},
+    {'id': 106, 'name': 'Hindi'},
+    {'id': 107, 'name': 'Work Education'},
+    {'id': 108, 'name': 'Physical Education'},
+    {'id': 109, 'name': 'English'},
+    {'id': 110, 'name': 'Fine Art'},
+    {'id': 111, 'name': 'Music'},
+    {'id': 112, 'name': 'Education103\''},
+    {'id': 201, 'name': 'Psychology'},
+    {'id': 202, 'name': 'English'},
+    {'id': 203, 'name': 'Maths'},
+    {'id': 204, 'name': 'Hindi'},
+    {'id': 205, 'name': 'Fine Arts'},
+    {'id': 206, 'name': 'Music'},
+    {'id': 207, 'name': 'Physical Education'},
+    {'id': 208, 'name': 'Social Science'},
+    {'id': 209, 'name': 'Education'},
+    {'id': 210, 'name': 'Planning and Management'},
+    {'id': 211, 'name': 'Science Education'},
+  ];
 
   @override
   void dispose() {
@@ -237,6 +219,16 @@ void _resetForm() {
     }
   }
 
+  List<Map<String, dynamic>> _getFilteredCourses() {
+    if (_selectedYear == 1) {
+      return _courses.where((course) => course['id'] < 200).toList();
+    } else if (_selectedYear == 2) {
+      return _courses.where((course) => course['id'] >= 200).toList();
+    } else {
+      return [];
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -312,7 +304,7 @@ void _resetForm() {
       ),
       filled: true,
       fillColor: Colors.white,
-      contentPadding: const EdgeInsets.all(12),
+      contentPadding: const EdgeInsets.all(10),
     );
   }
 
@@ -395,7 +387,7 @@ void _resetForm() {
   Widget _buildCourseDropdown() {
     final filteredCourses = _getFilteredCourses();
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, ),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: DropdownButtonFormField<int>(
         value: _selectedCourseId,
         items: filteredCourses
@@ -409,7 +401,6 @@ void _resetForm() {
             _selectedCourseId = value;
           });
         },
-        
         decoration: _inputDecoration().copyWith(labelText: 'Select Course'),
       ),
     );
@@ -476,8 +467,3 @@ void _resetForm() {
     );
   }
 }
-
-
-
-
-  

@@ -6,8 +6,6 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class StudentAddAndDeletePage extends StatefulWidget {
-  const StudentAddAndDeletePage({super.key,});
-
   @override
   _StudentAddAndDeletePageState createState() =>
       _StudentAddAndDeletePageState();
@@ -19,8 +17,6 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
   List<String> selectedCourses = [];
 
   bool isLoading = true;
-  // ignore: unused_field
-  String _message = '';
 
   final String apiUrl =
       'https://attendance-management-system-jdbc.onrender.com/api/student/all-students';
@@ -43,59 +39,37 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
     return prefs.getString('token');
   }
 
-   Future<void> _fetchCourses() async {
-    setState(() {
-      isLoading = true;
-    });
-
+  Future<void> _fetchCourses() async {
     final token = await _getToken();
 
     if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No token found')),
-      );
-      setState(() {
-        isLoading = false;
-      });
+      _showSnackBar('No token found');
       return;
     }
 
     try {
       final response = await http.get(
-        Uri.parse(coursesApiUrl),  // Changed from apiUrl to coursesApiUrl
+        Uri.parse(coursesApiUrl),
         headers: {'Authorization': 'Bearer $token'},
       );
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final data = json.decode(response.body) as List;
         setState(() {
           courses = data
               .map((course) => {
-                    'id': course['_id'] ?? '',
-                    'courseId': course['courseId'] ?? '',
-                    'courseName': course['courseName'] ?? 'No name',
-                    'year': course['year'] ?? 1,
+                    'id': course['courseId'].toString(),
+                    'name': course['courseName'] ?? 'No name',
                   })
               .toList();
         });
-      } else if (response.statusCode == 403) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Session expired, please log in again.')),
-        );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to load courses')),
-        );
+        // _handleHttpError(response);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
+      _showSnackBar('Error: $e');
     }
   }
 
@@ -305,7 +279,32 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
     String selectedGender = 'M'; // Default selected gender
     List<Map<String, dynamic>> selectedCourses = []; // To hold selected courses
 
-
+    // List of courses
+ List<Map<String, dynamic>> courses = [
+    {"courseId": 101, "courseName": "Education Technology", "year": 1},
+    {"courseId": 102, "courseName": "Psychology", "year": 1},
+    {"courseId": 103, "courseName": "Maths", "year": 1},
+    {"courseId": 104, "courseName": "Education 102", "year": 1},
+    {"courseId": 105, "courseName": "EVS", "year": 1},
+    {"courseId": 106, "courseName": "Hindi", "year": 1},
+    {"courseId": 107, "courseName": "Work Education", "year": 1},
+    {"courseId": 108, "courseName": "Physical Education", "year": 1},
+    {"courseId": 109, "courseName": "English", "year": 1},
+    {"courseId": 110, "courseName": "Fine Art", "year": 1},
+    {"courseId": 111, "courseName": "Music", "year": 1},
+    {"courseId": 112, "courseName": "Education103", "year": 1},
+    {"courseId": 201, "courseName": "Psychology", "year": 2},
+    {"courseId": 202, "courseName": "English", "year": 2},
+    {"courseId": 203, "courseName": "Maths", "year": 2},
+    {"courseId": 204, "courseName": "Hindi", "year": 2},
+    {"courseId": 205, "courseName": "Fine Arts", "year": 2},
+    {"courseId": 206, "courseName": "Music", "year": 2},
+    {"courseId": 207, "courseName": "Physical Education", "year": 2},
+    {"courseId": 208, "courseName": "Social Science", "year": 2},
+    {"courseId": 209, "courseName": "Education", "year": 2},
+    {"courseId": 210, "courseName": "Planning and Management", "year": 2},
+    {"courseId": 211, "courseName": "Science Education", "year": 2},
+  ];    
 
     showDialog(
       context: context,

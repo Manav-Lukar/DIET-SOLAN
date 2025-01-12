@@ -57,7 +57,7 @@ class _FacultyAddAndDeletePageState extends State<FacultyAddAndDeletePage> {
         setState(() {
           courses = data
               .map((course) => {
-                    'id': course['courseId'].toString() ?? '',
+                    'id': course['courseId'].toString(),
                     'name': course['courseName'] ?? 'No name',
                   })
               .toList();
@@ -542,8 +542,6 @@ void _showAddFacultyDialog() {
             : ListView.builder(
                 itemCount: faculty.length,
                 itemBuilder: (context, index) {
-                  elevation:
-                  5;
 
                   final fac = faculty[index];
                   return Card(
