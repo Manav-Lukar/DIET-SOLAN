@@ -145,7 +145,6 @@ Future<void> _loginUser(BuildContext context) async {
                   'name': adminName ?? 'Admin',
                   'email': adminEmail ?? '',
                 },
-                name: null,
               ),
             ),
           );

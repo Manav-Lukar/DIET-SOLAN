@@ -1,9 +1,13 @@
+import 'dart:io';
+
+import 'package:diet_portal/admin/excel_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:file_picker/file_picker.dart';
 
 class StudentAddAndDeletePage extends StatefulWidget {
   const StudentAddAndDeletePage({super.key,});
@@ -222,6 +226,13 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
         ),
         actions: [
           TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _showEditStudentDialog(student);
+            },
+            child: const Text('Edit'),
+          ),
+          TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Close'),
           ),
@@ -284,6 +295,37 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
       _showSnackBar('Error: $e');
     }
   }
+
+  Future<void> _updateStudent(Map<String, dynamic> studentData, String enrollNo) async {
+  final token = await _getToken();
+
+  if (token == null) {
+    _showSnackBar('No token found');
+    return;
+  }
+
+  try {
+    final response = await http.put(
+      Uri.parse('${apiUrl.replaceAll('all-students', 'update-student')}/$enrollNo'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(studentData),
+    );
+
+    print('Update Student Response: ${response.body}');
+
+    if (response.statusCode == 200) {
+      _showSnackBar('Student updated successfully');
+      _fetchStudents();
+    } else {
+      _showSnackBar('Failed to update student');
+    }
+  } catch (e) {
+    _showSnackBar('Error: $e');
+  }
+}
 
   void _showAddStudentDialog() {
     final _formKey = GlobalKey<FormState>();
@@ -536,6 +578,58 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
     return TextInputType.text;
   }
 
+  Future<void> _uploadExcelFile() async {
+  try {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['xlsx'],
+    );
+
+    if (result != null) {
+      setState(() => isLoading = true);
+      
+      final excelService = ExcelService();
+      final response = await excelService.processExcelData(result.files.first.bytes!);
+      
+      _showSnackBar(response['message']);
+      
+      if (response['success']) {
+        _fetchStudents(); // Refresh the student list
+      }
+    }
+  } catch (e) {
+    _showSnackBar('Error uploading file: $e');
+  } finally {
+    setState(() => isLoading = false);
+  }
+}
+
+Future<void> _downloadTemplate() async {
+  try {
+    final excelService = ExcelService();
+    final bytes = await excelService.generateTemplate();
+    
+    // For web platform
+    // html.AnchorElement(
+    //   href: html.Url.createObjectUrlFromBlob(
+    //     html.Blob([bytes], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+    //   ),
+    // )
+    //   ..setAttribute('download', 'student_template.xlsx')
+    //   ..click();
+    
+    // For mobile/desktop platforms
+    final String? path = await FilePicker.platform.getDirectoryPath();
+    if (path != null) {
+      final file = File('$path/student_template.xlsx');
+      await file.writeAsBytes(bytes);
+      _showSnackBar('Template downloaded successfully');
+    }
+  } catch (e) {
+    _showSnackBar('Error downloading template: $e');
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -544,8 +638,19 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
         backgroundColor: const Color(0xFFE0F7FA),
         actions: [
           IconButton(
+            icon: const Icon(Icons.download),
+            onPressed: _downloadTemplate,
+            tooltip: 'Download Template',
+          ),
+          IconButton(
+            icon: const Icon(Icons.upload_file),
+            onPressed: _uploadExcelFile,
+            tooltip: 'Upload Excel File',
+          ),
+          IconButton(
             icon: const Icon(Icons.add),
             onPressed: _showAddStudentDialog,
+            tooltip: 'Add Student',
           ),
         ],
       ),
@@ -618,4 +723,142 @@ class _StudentAddAndDeletePageState extends State<StudentAddAndDeletePage> {
       ),
     );
   }
+
+  void _showEditStudentDialog(Map<String, dynamic> student) {
+  final _formKey = GlobalKey<FormState>();
+  final _controllers = {
+    'fName': TextEditingController(text: student['name'].split(' ')[0]),
+    'lName': TextEditingController(
+        text: student['name'].split(' ').length > 1 ? student['name'].split(' ')[1] : ''),
+    'email': TextEditingController(text: student['email']),
+    'enrollNo': TextEditingController(text: student['enrollNo']),
+    'fatherName': TextEditingController(text: student['fatherName']),
+    'motherName': TextEditingController(text: student['motherName']),
+    'dob': TextEditingController(text: student['dob']),
+  };
+
+  String selectedYear = student['year'].toString();
+  String selectedSection = student['section'];
+  String originalEnrollNo = student['enrollNo'];
+
+  // Function to check if enrollment number is unique
+  Future<bool> isEnrollmentUnique(String enrollNo) async {
+    if (enrollNo == originalEnrollNo) return true; // Allow same number if unchanged
+    
+    return !students.any((s) => s['enrollNo'].toString() == enrollNo);
+  }
+
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Edit Student'),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ..._controllers.entries.map((entry) {
+                final key = entry.key;
+                final controller = entry.value;
+                final labelText = _getLabelText(key);
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: TextFormField(
+                    controller: controller,
+                    decoration: InputDecoration(
+                      labelText: labelText,
+                      border: const OutlineInputBorder(),
+                    ),
+                    enabled: key != 'enrollNo', // Disable enrollment number editing
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter $labelText';
+                      }
+                      return null;
+                    },
+                  ),
+                );
+              }).toList(),
+              
+              // Year Dropdown
+              DropdownButtonFormField<String>(
+                value: selectedYear,
+                decoration: const InputDecoration(
+                  labelText: 'Year',
+                  border: OutlineInputBorder(),
+                ),
+                items: ['1', '2'].map((String year) {
+                  return DropdownMenuItem<String>(
+                    value: year,
+                    child: Text(year),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  selectedYear = value ?? '1';
+                },
+              ),
+
+              const SizedBox(height: 10),
+
+              // Section Dropdown
+              DropdownButtonFormField<String>(
+                value: selectedSection,
+                decoration: const InputDecoration(
+                  labelText: 'Section',
+                  border: OutlineInputBorder(),
+                ),
+                items: ['A', 'B'].map((String section) {
+                  return DropdownMenuItem<String>(
+                    value: section,
+                    child: Text(section),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  selectedSection = value ?? 'A';
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () async {
+            if (_formKey.currentState?.validate() ?? false) {
+              final enrollNo = _controllers['enrollNo']!.text;
+              final isUnique = await isEnrollmentUnique(enrollNo);
+
+              if (!isUnique) {
+                _showSnackBar('Enrollment number must be unique');
+                return;
+              }
+
+              final updatedData = {
+                'fName': _controllers['fName']!.text,
+                'lName': _controllers['lName']!.text,
+                'email': _controllers['email']!.text,
+                'enrollNo': enrollNo,
+                'fatherName': _controllers['fatherName']!.text,
+                'motherName': _controllers['motherName']!.text,
+                'dob': _controllers['dob']!.text,
+                'year': selectedYear,
+                'section': selectedSection,
+              };
+
+              _updateStudent(updatedData, student['enrollNo']);
+              Navigator.of(context).pop();
+            }
+          },
+          child: const Text('Save'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+      ],
+    ),
+  );
+}
 }

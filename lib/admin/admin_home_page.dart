@@ -1,3 +1,4 @@
+import 'package:diet_portal/admin/show_all_attendance.dart';
 import 'package:flutter/material.dart';
 import 'admin_personal_info.dart';
 import 'faculty_add_and_delete.dart'; // Import the new Faculty management file
@@ -9,7 +10,7 @@ class AdminHomePage extends StatelessWidget {
 
   const AdminHomePage({
     super.key,
-    required this.adminInfo, required name,
+    required this.adminInfo,
   });
 
   @override
@@ -103,6 +104,23 @@ class AdminHomePage extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => CourseAddAndDeletePage(),
+                        ),
+                      ),
+                    ),
+                    buildTile(
+                      context,
+                      'View All Attendance',
+                      Icons.book,
+                      Colors.purple,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ShowAllAttendancePage(
+                            facultyName: adminInfo['name'],
+                            courseId: '',
+                            year: '',
+                            section: '',
+                          ),
                         ),
                       ),
                     ),

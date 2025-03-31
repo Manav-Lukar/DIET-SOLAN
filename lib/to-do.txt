@@ -1,0 +1,14 @@
+Principal( Admin): - 
+- Class atendance - daywise/total  ✅
+- individual student attendance ✅
+- search attendance by name ✅
+
+- faculty atendance ❔
+
+- Bulk upload details ✅
+- Edit student / courses (detail) ✅
+- Auto Year update ❓
+
+Bug
+- Atendance view
+- Courses teaching.dart still hardcoded

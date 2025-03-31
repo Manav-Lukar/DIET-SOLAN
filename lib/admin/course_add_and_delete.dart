@@ -30,6 +30,17 @@ class _CourseAddAndDeletePageState extends State<CourseAddAndDeletePage> {
     return prefs.getString('token');
   }
 
+  Future<bool> _isCourseCodeUnique(String courseId, {String? originalCourseId}) async {
+    // If checking against the same code, it's unique
+    if (courseId == originalCourseId) return true;
+    
+    // Check if any other course has this code
+    return !courses.any((course) => 
+      course['courseId'].toString() == courseId.toString() && 
+      course['courseId'].toString() != originalCourseId
+    );
+  }
+
   Future<void> _fetchCourses() async {
     setState(() {
       isLoading = true;
@@ -170,6 +181,43 @@ class _CourseAddAndDeletePageState extends State<CourseAddAndDeletePage> {
     }
   }
 
+  Future<void> _updateCourse(Map<String, dynamic> courseData) async {
+    final token = await _getToken();
+
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No token found')),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.put(
+        Uri.parse('${apiUrl.replaceAll('show-courses', 'update-course')}/${courseData['courseId']}'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(courseData),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Course updated successfully')),
+        );
+        _fetchCourses();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update course')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
   void _showAddCourseDialog() {
     final _formKey = GlobalKey<FormState>();
     final _courseNameController = TextEditingController();
@@ -275,13 +323,127 @@ class _CourseAddAndDeletePageState extends State<CourseAddAndDeletePage> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
+              _showEditCourseDialog(course);
             },
+            child: const Text('Edit'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
             child: const Text('Close'),
           ),
         ],
       ),
     );
   }
+
+  // Replace existing _showEditCourseDialog method
+void _showEditCourseDialog(Map<String, dynamic> course) {
+  final _formKey = GlobalKey<FormState>();
+  final _courseNameController = TextEditingController(text: course['name']);
+  final _courseCodeController = TextEditingController(text: course['courseId'].toString());
+  final _yearController = TextEditingController(text: course['year'].toString());
+  final originalCourseId = course['courseId'].toString();
+  
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Edit Course'),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              TextFormField(
+                controller: _courseNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Course Name',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter the course name';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10),
+              // Replace the TextFormField for course code with this implementation
+              TextFormField(
+                controller: _courseCodeController,
+                decoration: const InputDecoration(
+                  labelText: 'Course Code',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) async {
+                  // Perform validation on change
+                  if (value.isNotEmpty) {
+                    final isUnique = await _isCourseCodeUnique(value, originalCourseId: originalCourseId);
+                    if (!isUnique) {
+                      _formKey.currentState?.validate(); // Trigger validation
+                    }
+                  }
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter the course code';
+                  }
+                  // Store the current validation state
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _yearController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Year',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter the year';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            if (_formKey.currentState?.validate() ?? false) {
+              final newCourseId = _courseCodeController.text;
+              final isUnique = await _isCourseCodeUnique(newCourseId, originalCourseId: originalCourseId);
+              
+              if (!isUnique) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Course code must be unique')),
+                );
+                return;
+              }
+
+              final updatedCourse = {
+                'courseId': int.parse(newCourseId),
+                'courseName': _courseNameController.text,
+                'year': int.parse(_yearController.text),
+              };
+              _updateCourse(updatedCourse);
+              Navigator.of(context).pop();
+            }
+          },
+          child: const Text('Save Changes'),
+        ),
+      ],
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
